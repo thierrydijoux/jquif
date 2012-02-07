@@ -1,0 +1,26 @@
+JqUIF
+==============
+
+Classes to generate JQuery UI from a CGI in free pascal.
+Demo can be view here : http://test.myvirtspace.com/cgi-bin/jquery/
+
+What is working ?
+
+  - Accordion,  
+  - Buttons,
+  - Datepicker,
+  - Dialog,
+  - Resizer,
+  - Tabs,  
+
+  - Basic events management,
+  - Basic autocomplete
+
+  - Form validator (based on jquery plugin validation http://bassistance.de/jquery-plugins/jquery-plugin-validation/)
+  - DataGrid (based on jqgrid http://www.trirand.com/blog/)
+
+What to do ?
+
+A lot !
+Better support of events, support of the ajax API, the code could be better...
+But for now, it works for my needs, so if you want to help, you're welcome !
