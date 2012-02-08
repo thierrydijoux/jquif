@@ -1,3 +1,9 @@
+{
+@abstract(Class for Buttons)
+@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+Class for Buttons.
+}
+
 unit JqButton;
 
 {$mode objfpc}{$H+}
@@ -15,7 +21,8 @@ Type
                     { CheckBox button }
                     tbCheckBox);
 
-  { Simple button class }
+  { @abstract(Simple button class)
+  Simple button class }
   TJQButton = class(TJQBase)
   private
     FRole: string;
@@ -36,15 +43,22 @@ Type
     property Enabled: boolean read FEnabled write FEnabled;
   end;
 
+  { @abstract(Button for the TJQToggleButton class)
+    Button for the TJQToggleButton class
+  }
   TJQToggleButtonItem = class
   private
     FCaption: string;
     FChecked: boolean;
   public
+    // Caption of the button
     property Caption: string read FCaption write FCaption;
+    // Button is checked on not
     property Checked: boolean read FChecked write FChecked;
   end;
 
+  { @abstract(Maintains a set of toggle buttons)
+    Maintains a set of toggle buttons }
   TJQToggleButton = class(TJQButton)
   private
     FItems: TObjectList;
@@ -64,6 +78,8 @@ Type
     property Count: integer read GetCount;
   end;
 
+  { @abstract(Div button)
+    Div button }
   TJQDivButton = class(TJQButton)
   protected
     function GetContent: string; override;
@@ -72,6 +88,8 @@ Type
     constructor Create;
   end;
 
+  { @abstract(HRef button)
+    HRef button }
   TJQHRefButton = class(TJQButton)
   private
     FHref: string;

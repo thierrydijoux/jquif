@@ -36,7 +36,8 @@ Type
             { Align center }
             caCenter);
 
-  { Define a column in the grid }
+  { @abstract(Define a column in the grid)
+  Define a column in the grid }
   TColumn = class(TObject)
   private
     FTitle: string;
@@ -57,7 +58,8 @@ Type
     property IsSortable: boolean read FIsSortable write FIsSortable;
   end;
 
-  { Grid Class }
+  {@abstract(Grid class)
+  Grid Class }
   TJQGrid = Class(TObject)
   private
     FTitle: string;

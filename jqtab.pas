@@ -1,3 +1,8 @@
+{
+@abstract(Class for JQTab)
+@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+Class for JQTab.
+}
 unit JQTab;
 
 {$mode objfpc}{$H+}
@@ -9,6 +14,10 @@ uses
 
 Type
 
+  {
+    @abstract(Class for JQTab item)
+    Class for JQTab item.
+  }
   TJQTabItem = class
   private
     FTitle: string;
@@ -20,12 +29,20 @@ Type
     constructor Create;
     destructor Destroy; override;
     procedure AddContent(AValue: string);
+    // Title of the tab
     property Title: string read FTitle write FTitle;
+    // Content of the tab
     property Content: TStrings read FContent write FContent;
+    // Use ajax to fill the tab
     property UseAjax: boolean read FUseAjax write FUseAjax;
+    // URL for the ajax call
     property AjaxURL: string read FAjaxURL write FAjaxURL;
   end;
 
+  {
+    @abstract(Class for JQTab)
+    Class for JQTab.
+  }
   TJqTab = class(TJQBase)
   private
     FTabList: TObjectList;
@@ -43,7 +60,9 @@ Type
     procedure Clear;
     property Tab[AItemIndex: integer]: TJQTabItem read GetTab;
     property TabCount: integer read GetCount;
+    // Tab is collapsible or not
     property Collapsible: boolean read FIsCollapsible write FIsCollapsible;
+    // Opens tab automatically on mouse over
     property OpenOnMouseOver: boolean read FOpenOnMouseOver write FOpenOnMouseOver;
   end;
 

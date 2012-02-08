@@ -1,3 +1,8 @@
+{
+@abstract(Class for HTML Template )
+@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+Class for HTML Template.
+}
 unit HtmlTemplate;
 
 {$mode objfpc}{$H+}
@@ -8,16 +13,21 @@ uses
   Classes, SysUtils, Contnrs, strUtils;
 
 Type
-
+  { @abstract(Tag Item)
+  Tag Item }
   TTagItem = class
   private
     FTagName: string;
     FTagValue: string;
   public
+    { Name of the tag in the template to be replaced }
     property TagName: string read FTagName write FTagName;
+    { Value of the tag to be replaced in the template }
     property TagValue: string read FTagValue write FTagValue;
   end;
 
+  { @abstract(Maintains a list of tags)
+  Maintains a list of tags }
   TTags = class(TObjectList)
   private
     FOwnsObjects: Boolean;
@@ -25,7 +35,9 @@ Type
     function GetItem(Index: Integer): TTagItem;
     procedure SetItem(Index: Integer; AObject: TTagItem);
   public
+    { Add a tag in the list }
     function Add(AObject: TTagItem): Integer;
+    { Add a tag in the list. Another way to add it }
     function Add(ATagName: string; ATagValue: string): integer; overload;
     function Remove(AObject: TTagItem): Integer;
     function IndexOf(AObject: TTagItem): Integer;
@@ -34,7 +46,8 @@ Type
     property Items[Index: Integer]: TTagItem read GetItem write SetItem; default;
   end;
 
-
+  { @abstract(class for manipulating template)
+  class for manipulating template }
   THtmlTemplate = class
   private
     FFileName: string;
@@ -48,16 +61,26 @@ Type
     function GetExtraJavaScript: string;
     function GetExtraContent: string;
   public
+    { Load the template }
     function Load: boolean;
+    { Add HTML content }
     procedure AddExtraContent(AContent: string);
+    { Add javascript script }
     procedure AddExtraJavaScript(AJavaScript: string);
+    { Add Css }
     procedure AddExtraCss(ACss: string);
+    { Create the object with the template to load }
     constructor Create(ATemplateName: string);
     destructor Destroy; override;
+    { Return the generated HTML }
     property Content: string read GetContent;
+    { List of tags }
     property Tags: TTags read FTags;
+    { Return the generated CSS }
     property ExtraCss: string read GetExtraCss;
+    { Return the generated javascript }
     property ExtraJavaScript: string read GetExtraJavaScript;
+    { Return the generated HTML }
     property ExtraContent: string read GetExtraContent;
   end;
 
