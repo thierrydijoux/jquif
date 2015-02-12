@@ -50,15 +50,23 @@ Type
     property Size: integer read FSize write FSize;
   end;
 
+  TSelectItem = record
+       value : string;
+       caption : string;
+       selected : boolean;
+       disabled : boolean;
+  end;
+
   TSelect = class(TBaseInput)
   protected
-    FItemsList: TStringList;
+    FItemsList: Array of TSelectItem;  // zero based
     function GetHtml(AInTable: boolean): string; override;
   public
     constructor Create;
     constructor Create(AItemList: TStringList); overload;
     destructor Destroy; override;
     function AddItem(AValue: string; ALabel: string): integer;
+    function AddItem(AValue: string; ALabel: string; ASelected, ADisabled: boolean): integer;
   end;
 
   TFile = class(TBaseInput)
@@ -135,14 +143,17 @@ implementation
 
 
 { TSelect }
+// validate is a jQuery tag
 //  <select id="jungle" name="jungle" title="Please select something!" validate="required:true">
-
-
-
+//	<option value=""></option>
+//	<option value="1">Buga</option>
+//	<option value="2">Baga</option>
+//	<option value="3">Oi</option>
+// </select>
 function TSelect.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
-  Data, DataRequired: string;
+  OneItem, DataRequired: string;
   STD, ETD: string;
   i: integer;
 begin
@@ -154,32 +165,26 @@ begin
     ETD:='</td>';
   end;
 
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '"';
-
   // is it required ?
   Case FRequired of
     true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
     false: DataRequired:= 'notrequired';
   end;
-{
-		<select id="jungle" name="jungle" title="Please select something!" validate="required:true">
-			<option value=""></option>
-			<option value="1">Buga</option>
-			<option value="2">Baga</option>
-			<option value="3">Oi</option>
-		</select>
-}
 
-  if FLabel <> '' then
+  if FLabel <> '' then begin
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
+  end;
+  Html.Add(STD + '<select id="' + FId + '" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 FExtraParam + '>');
 
-  Html.Add(STD + '<select id="' + FId + '" name="' + FName + '" class="' + DataRequired + '"' + FExtraParam + '>');
-  for i:= 0 to FItemsList.Count -1 do
-    Html.Add('<option value="' + FItemsList.Names[i] + '">' + FItemsList.Values[FItemsList.Names[i]] + '</option>');
-
+  for i:= 0 to Length(FItemsList) -1 do begin
+      OneItem:= '<option value="' + FItemsList[i].value + '" ';
+      if FItemsList[i].selected then OneItem:= OneItem + 'selected ';
+      if FItemsList[i].disabled then OneItem:= OneItem + 'disabled ';
+      OneItem:= OneItem + '>' + FItemsList[i].caption + '</option>';
+      Html.Add(OneItem);
+  end;
   Html.Add('</select>' + ETD);
 
   result:= Html.Text;
@@ -189,12 +194,25 @@ end;
 
 function TSelect.AddItem(AValue: string; ALabel: string): integer;
 begin
-  result:= FItemsList.Add(AValue + '=' + ALabel);
+  result:= AddItem(AValue, ALabel, false, false);
+end;
+
+function TSelect.AddItem(AValue: string; ALabel: string; ASelected, ADisabled: boolean): integer;
+var count : integer;
+begin
+  count:=Length(FItemsList);
+  inc(count);
+  SetLength(FItemsList, count);
+  FItemsList[count-1].value:= AValue;
+  FItemsList[count-1].caption:= ALabel;
+  FItemsList[count-1].selected:= ASelected;
+  FItemsList[count-1].disabled:= ADisabled;
+  result:= count-1;
 end;
 
 destructor TSelect.Destroy;
 begin
-  FItemsList.Free;
+  SetLength(FItemsList, 0);
   inherited destroy;
 end;
 
@@ -204,7 +222,7 @@ Var
 begin
   inherited Create;
   try
-    if not Assigned(FItemsList) then FItemsList:= TStringList.Create;
+    SetLength(FItemsList, 0);
     for i:= 0 to AItemList.Count -1 do
       AddItem(AItemList.Names[i], AItemList.Values[AItemList.Names[i]]);
   except on e:exception do
@@ -215,7 +233,7 @@ end;
 constructor TSelect.Create;
 begin
   FElementType:= etSelect;
-  FItemsList:= TStringList.Create;
+  SetLength(FItemsList, 0);
 end;
 
 { TTextArea }
@@ -253,8 +271,10 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  //<textarea id="ccomment" name="comment" class="required"></textarea>
-  Html.Add(STD + '<textarea id="' + FId + '" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' ></textarea>' + ETD);
+  Html.Add(STD + '<textarea id="' + FId + '" name="' + FName +
+                 '" class="' + FClass + '" validate="' +DataRequired + '" ' +
+                 Data + DataSize + ' '+ FExtraParam + ' ></textarea>' + ETD);
+
   result:= Html.Text;
   Html.Free;
 end;
@@ -293,7 +313,9 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  Html.Add(STD + '<input id="' + FId + '" type="checkbox" name="' + FName + '" class="' + DataRequired + '"' + Data + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input id="' + FId + '" type="checkbox" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 Data + ' ' + FExtraParam + ' />' + ETD);
 
   result:= Html.Text;
   Html.Free;
@@ -333,7 +355,9 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  Html.Add(STD + '<input id="' + FId + '" type="radio" name="' + FName + '" class="' + DataRequired + '"' + Data + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input id="' + FId + '" type="radio" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 Data + ' ' + FExtraParam + ' />' + ETD);
   result:= Html.Text;
   Html.Free;
 end;
@@ -356,7 +380,8 @@ begin
     STD:='<td>';
     ETD:='</td>';
   end;
-  Html.Add(STD + '<input class="' + FClass + '" type="reset" value="' + FValue + '"' + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input class="' + FClass + '" type="reset" value="' + FValue + '" ' +
+                 FExtraParam + ' />' + ETD);
   result:= Html.Text;
   Html.Free;
 end;
@@ -379,7 +404,8 @@ begin
     STD:='<td>';
     ETD:='</td>';
   end;
-  Html.Add(STD + '<input class="' + FClass + '" type="submit" value="' + FValue + '" Name="' + FName + '" ' + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input class="' + FClass + '" type="submit" value="' + FValue +
+               '" Name="' + FName + '" ' + FExtraParam + ' />' + ETD);
   result:= Html.Text;
   Html.Free;
 end;
@@ -424,7 +450,9 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  Html.Add(STD + '<input id="' + FId + '" type="password" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input id="' + FId + '" type="password" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 Data + DataSize + ' ' + FExtraParam + ' />' + ETD);
 
   result:= Html.Text;
 
@@ -461,7 +489,9 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  Html.Add(STD + '<input id="' + FId + '" type="file" name="' + FName + '" class="' + DataRequired + '"' + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input id="' + FId + '" type="file" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 FExtraParam + ' />' + ETD);
   Html.Add('<td class="status"></td>');
   result:= Html.Text;
 
@@ -498,7 +528,7 @@ begin
   // Having some value ?
   Data:= '';
   if FValue <> '' then
-    Data:= 'value="' + FValue + '"';
+    Data:= 'value="' + FValue + '" ';
 
   DataSize:= '';
   if FSize > 0 then
@@ -543,7 +573,9 @@ begin
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
-  Html.Add(STD + '<input id="' + FId + '" type="text" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' />' + ETD);
+  Html.Add(STD + '<input id="' + FId + '" type="text" name="' + FName +
+                 '" class="' + FClass + '" validate="' + DataRequired + '" ' +
+                 Data + DataSize + ' ' + FExtraParam + ' />' + ETD);
   Html.Add('<td class="status"></td>');
   Html.Insert(0, '<div class="ui-widget">');
   Html.Add('</div>');

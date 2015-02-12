@@ -11,9 +11,11 @@ Type
   TJQDatePicker = class(TJQBase)
   private
     FRole: string;
+    FLanguage : string;
   protected
     function GetContent: string; override;
     function GetJs: string; override;
+    procedure SetLanguage(lang:string);
   public
     constructor Create;
   end;
@@ -35,7 +37,7 @@ begin
   FJs.Add('<script type="text/javascript">');
   FJs.Add('	$(function() {');
   FJs.Add('	$.datepicker.setDefaults( $.datepicker.regional[ "" ] );');
-  FJs.Add('	$( "#' + FId + '" ).datepicker( $.datepicker.regional[ "fr" ] );');
+  FJs.Add('	$( "#' + FId + '" ).datepicker( $.datepicker.regional[ "'+FLanguage+'" ] );');
   FJs.Add('	});');
   FJs.Add('	</script>');
   result:= FJs.Text;
@@ -45,7 +47,14 @@ constructor TJQDatePicker.Create;
 begin
   inherited Create;
   FRole:= 'role="button"';
+  FLanguage:= '';
   FClasse:= 'class="ui-datepicker-inline ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all"';
+end;
+
+// lang should be a two character string, such as 'en', 'fr', 'es'
+procedure TJQDatePicker.SetLanguage(lang:string);
+begin
+  FLanguage:= lang;
 end;
 
 {
