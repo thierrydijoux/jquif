@@ -101,6 +101,8 @@ Type
     property Href: string read FHref write FHref;
   end;
 
+  { See http://api.jqueryui.com/theming/icons/
+    for the list of possible icons }
   TJQIconButton = class(TJQButton)
   private
     FLeftRightIcons: boolean;
@@ -229,14 +231,11 @@ begin
   if Not FEnabled then
     FJs.Add('{ disabled: true },');
   FJs.Add('{');
-  FJs.Add('					icons: {');
-  if FLeftRightIcons then
-  begin
-      FJs.Add('						primary: ''ui-icon-wrench'',');
-      FJs.Add('						secondary: ''ui-icon-triangle-1-s''');
-  end
-  else
-    FJs.Add('						primary: ''ui-icon-wrench''');
+  FJs.Add('			icons: {');
+  FJs.Add('				primary: ''ui-icon-wrench'',');
+  if FLeftRightIcons then begin
+      FJs.Add('				secondary: ''ui-icon-triangle-1-s''');
+  end;
   FJs.Add('					}');
   FJs.Add('				})});');
   FJs.Add('		</script>');
@@ -263,9 +262,13 @@ end;
 function TJQIconButton.GetContent: string;
 begin
   FContent.Clear;
-  FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' + '<span class="ui-button-icon-primary ui-icon ui-icon-wrench"></span><span class="ui-button-text">' + FCaption + '</span>';
-  if self.FLeftRightIcons then
-    FContent.Text:= FContent.Text + '<span class="ui-button-icon-secondary ui-icon ui-icon-triangle-1-s"></span>';
+  FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' +
+                  '<span class="ui-button-icon-primary ui-icon ui-icon-wrench"></span>'+
+                  '<span class="ui-button-text">' + FCaption + '</span>';
+  if self.FLeftRightIcons then begin
+    FContent.Text:= FContent.Text +
+                    '<span class="ui-button-icon-secondary ui-icon ui-icon-triangle-1-s"></span>';
+  end;
   FContent.Text:= FContent.Text + '</div>';
   result:= FContent.Text;
 end;
@@ -295,7 +298,9 @@ end;
 function TJQHRefButton.GetContent: string;
 begin
   FContent.Clear;
-  FContent.Text:= '<a ' + FRole + ' ' + FClasse + ' id="' + FId + '" href="' + FHRef + '">' + '<span class="ui-button-text">' + FCaption + '</span></a>';
+  FContent.Text:= '<a ' + FRole + ' ' + FClasse + ' id="' + FId + '" href="' + FHRef + '">' +
+                  '<span class="ui-button-text">' + FCaption + '</span>' +
+                  '</a>';
   result:= FContent.Text;
 end;
 
@@ -323,7 +328,8 @@ end;
 function TJQDivButton.GetContent: string;
 begin
   FContent.Clear;
-  FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' + '<span class="ui-button-text">' + FCaption + '</span></div>';
+  FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' +
+                  '<span class="ui-button-text">' + FCaption + '</span></div>';
   result:= FContent.Text;
 end;
 
@@ -352,14 +358,14 @@ end;
 
 constructor TJQButton.Create(AButtonTextOnly: boolean);
 begin
-  inherited create;
+  inherited Create;
   FButtonTextOnly:= AButtonTextOnly;
   FRole:= 'role="button"';
   FClasse:= 'class="ui-button ui-widget ui-state-default ui-corner-all';
   if FButtonTextOnly then
     FClasse:= FClasse + ' ui-button-text-only';
   FClasse:= FClasse + '"';
-  FEnabled:= True
+  FEnabled:= True;
 end;
 
 end.

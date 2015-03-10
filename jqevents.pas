@@ -47,7 +47,7 @@ function TJavaScriptEvent.GetGeneratedScript: string;
 begin
   FGeneratedScript.Clear;
   FGeneratedScript.Add('<script type="text/javascript">');
-  FGeneratedScript.Add('$(''' + FSelector + ''').delegate('''', ''' + EventTypeAsString + ''', function() {');
+  FGeneratedScript.Add('$("' + FSelector + '").delegate("", "' + EventTypeAsString + '", function() {');
   FGeneratedScript.Add(FScript.Text);
   FGeneratedScript.Add('});');
   FGeneratedScript.Add('</script>');

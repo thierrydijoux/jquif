@@ -146,7 +146,7 @@ begin
   if Assigned(FExtraContent) then
     Htm:= AnsiReplaceStr(Htm, '<!--extracontent-->', FExtraContent.Text);
   for i:= 0 to FTags.Count -1 do
-    Htm:= AnsiReplaceStr(Htm, FTags.Items[i].TagName, FTags.Items[i].TagValue);
+    Htm:= AnsiReplaceStr(Htm, '<!--'+FTags.Items[i].TagName+'-->', FTags.Items[i].TagValue);
   result:= Htm;
 end;
 

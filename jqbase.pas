@@ -21,10 +21,10 @@ Type
     FClasse: string;
     // id of the html element
     FId: string;
-    // Generated javascript
-    FJs: TStrings;
     // HTML content
     FContent: TStrings;
+    // Generated javascript
+    FJs: TStrings;
     // Css content
     FCss: TStrings;
     // Return the generated html
@@ -68,6 +68,8 @@ end;
 
 constructor TJQBase.Create;
 begin
+  FClasse:='';
+  FId:='';
   FContent:= TStringList.Create;
   FJs:= TStringList.Create;
   FCss:= TStringList.Create;

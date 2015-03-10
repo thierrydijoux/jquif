@@ -29,16 +29,16 @@ Type
     constructor Create;
     destructor Destroy; override;
     // Add an input text
-    procedure AddEdit(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddEditNumber(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddEditDate(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddPassword(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddTextArea(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddSelect(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string; Const AValueList: TStringList);
-    procedure AddRadio(ACaption: string; AName: string; AClass: string; AId: string; AValue: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddCheckBox(ACaption: string; AName: string; AClass: string; AId: string; AValue: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddSubmitButton(AClass: string; AName: string; AValue: string);
-    procedure AddResetButton(AClass: string; AValue: string);
+    procedure AddEdit(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddEditNumber(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddEditDate(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddPassword(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddTextArea(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddSelect(ACaption: string; AValueList: TStringList; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddRadio(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddCheckBox(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+    procedure AddSubmitButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
+    procedure AddResetButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
     procedure AddFile(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
     procedure AddHtml(AText: string; APos: TPosHtml);
     property Action: String read FAction write FAction;
@@ -77,138 +77,148 @@ begin
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddEditDate(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddEditDate(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputText;
 begin
   NewEdit:= TInputText.CreateAsDate;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
+  NewEdit.Value:= AValue;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.Required:=ARequired;
   NewEdit.ErrorMessage:=AErrorMsg;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddEditNumber(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddEditNumber(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputText;
 begin
   NewEdit:= TInputText.CreateAsNumber;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
+  NewEdit.Value:= AValue;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.Required:=ARequired;
   NewEdit.ErrorMessage:=AErrorMsg;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddEdit(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddEdit(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputText;
 begin
   NewEdit:= TInputText.Create;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
+  NewEdit.Value:= AValue;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.Required:=ARequired;
   NewEdit.ErrorMessage:=AErrorMsg;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddSelect(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string; Const AValueList: TStringList);
+procedure TJQForm.AddSelect(ACaption: string; AValueList: TStringList; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TSelect;
 begin
   NewEdit:= TSelect.Create(AValueList);
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.Required:=ARequired;
   NewEdit.ErrorMessage:=AErrorMsg;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddTextArea(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddTextArea(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TTextArea;
 begin
   NewEdit:= TTextArea.Create;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
+  NewEdit.Value:= AValue;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.Required:=ARequired;
   NewEdit.ErrorMessage:=AErrorMsg;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddPassword(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddPassword(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputPassword;
 begin
   NewEdit:= TInputPassword.Create;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
+  NewEdit.Value:= AValue;
   NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.ErrorMessage:=AErrorMsg;
   NewEdit.Required:=ARequired;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddCheckBox(ACaption: string; AName: string; AClass: string; AId: string; AValue: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddCheckBox(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputCheckBox;
 begin
   NewEdit:= TInputCheckBox.Create;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
-  NewEdit.Name:= AName;
   NewEdit.Value:=AValue;
+  NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.ErrorMessage:=AErrorMsg;
   NewEdit.Required:=ARequired;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddRadio(ACaption: string; AName: string; AClass: string; AId: string; AValue: string; ARequired: boolean; AErrorMsg: string);
+procedure TJQForm.AddRadio(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
 Var
   NewEdit: TInputRadio;
 begin
   NewEdit:= TInputRadio.Create;
   NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
-  NewEdit.Name:=AName;
   NewEdit.Value:=AValue;
+  NewEdit.Name:=AName;
+  NewEdit.Classe:= AClass;
   NewEdit.Id:=AId;
   NewEdit.ErrorMessage:=AErrorMsg;
   NewEdit.Required:=ARequired;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddSubmitButton(AClass: string; AName: string; AValue: string);
+procedure TJQForm.AddSubmitButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
 Var
   NewEdit: TInputSubmit;
 begin
   NewEdit:= TInputSubmit.Create;
-  NewEdit.Classe:= AClass;
+  NewEdit.Caption:= ACaption;
   NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;;
+  NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
+  NewEdit.Id:=AId;
   FElements.Add(NewEdit);
 end;
 
-procedure TJQForm.AddResetButton(AClass: string; AValue: string);
+procedure TJQForm.AddResetButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
 Var
   NewEdit: TInputReset;
 begin
   NewEdit:= TInputReset.Create;
-  NewEdit.Classe:= AClass;
+  NewEdit.Caption:= ACaption;
   NewEdit.Value:= AValue;
+  NewEdit.Name:= AName;
+  NewEdit.Classe:= AClass;
+  NewEdit.Id:=AId;
   FElements.Add(NewEdit);
 end;
 
@@ -265,59 +275,29 @@ begin
 end;
 
 function TJQForm.GetContent: string;
-Var
-  i: integer;
-  Method: string;
-//  Required: string;
+var i: integer;
+    Method: string;
 begin
-  FContent.Clear;
+   FContent.Clear;
 
-  Case FFormMethod of
-    fmPost: Method:= 'post';
-    fmGet: Method:= 'get';
-  end;
-
-  FContent.Add('<form method="' + Method + '" class="' + FClasse + '" id="' + FId + '" action="' + FAction +'" ' + FExtraParam + '>');
-//  FContent.Add('<fieldset>');
-  if FFormInTable then
-    FContent.Add('<table>');
-
-  for i:= 0 to FElements.Count -1 do
-  begin
-    if FFormInTable then
-      FContent.Add('<tr>');
-
-  FContent.Add(TBaseElement(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-
-{
-    if FElements.Items[i].ClassType = TInputText then
+   case FFormMethod of
+      fmPost: Method:= 'post';
+      fmGet: Method:= 'get';
+   end;
+   FContent.Add('<form method="' + Method + '" class="' + FClasse + '" id="' + FId +
+                '" action="' + FAction +'" ' + FExtraParam + '>');
+   if FFormInTable then FContent.Add('<table>');
+   for i:= 0 to FElements.Count -1 do begin
       FContent.Add(TBaseElement(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-    if FElements.Items[i].ClassType = TInputPassword then
-      FContent.Add(TInputPassword(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-    if FElements.Items[i].ClassType = TInputSubmit then
-      FContent.Add(TBaseElement(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-    if FElements.Items[i].ClassType = TInputReset then
-      FContent.Add(TBaseElement(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-}
-    if FFormInTable then
-    begin
-//      FContent.Add('<td></td>');
-      FContent.Add('</tr>');
-    end;
-  end;
+   end;
+   if FFormInTable then FContent.Add('</table>');
+   FContent.Add('</form>');
 
-  if FFormInTable then
-    FContent.Add('</table>');
-//  FContent.Add('</fieldset>');
-  FContent.Add('</form>');
+   FContent.Add('<br /><br /><div id="result" ></div><br /><br />');
 
-  FContent.Add('<br /><br /><div id="result" ></div><br /><br />');
-
-  if FBeginContent.Text <> '' then
-    FContent.Insert(1, FBeginContent.Text);
-  if FEndContent.Text <> '' then
-    FContent.Insert(FContent.Count -2, FEndContent.Text);
-  result:= FContent.Text;
+   if FBeginContent.Text <> '' then FContent.Insert(1, FBeginContent.Text);
+   if FEndContent.Text <> '' then FContent.Insert(FContent.Count -2, FEndContent.Text);
+   result:= FContent.Text;
 end;
 
 constructor TJQForm.Create;

@@ -14,6 +14,9 @@ Type
   TElementType = (etText, etNumber, etDate, etPassword, etButton, etSubmit, etTextArea, etFile, etHidden, etCheckbox, etRadio, etSelect);
 
   TBaseElement = class(TObject)
+    STR,ETR : string[5];
+    STD,ETD : string[5];
+    procedure tableMarks(AInTable: boolean);
   protected
     FId: string;
     FName: string;
@@ -142,6 +145,21 @@ Type
 implementation
 
 
+procedure TBaseElement.tableMarks(AInTable: boolean);
+begin
+   if AInTable then begin
+      STR:='<tr>';
+      ETR:='</tr>';
+      STD:='<td>';
+      ETD:='</td>';
+   end else begin
+      STR:='';
+      ETR:='';
+      STD:='';
+      ETD:='';
+   end;
+end;
+
 { TSelect }
 // validate is a jQuery tag
 //  <select id="jungle" name="jungle" title="Please select something!" validate="required:true">
@@ -154,23 +172,17 @@ function TSelect.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
   OneItem, DataRequired: string;
-  STD, ETD: string;
   i: integer;
 begin
   Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // is it required ?
   Case FRequired of
     true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
     false: DataRequired:= 'notrequired';
   end;
-
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then begin
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
   end;
@@ -186,9 +198,8 @@ begin
       Html.Add(OneItem);
   end;
   Html.Add('</select>' + ETD);
-
+  Html.Add(ETR);
   result:= Html.Text;
-
   Html.Free;
 end;
 
@@ -242,14 +253,8 @@ function TTextArea.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
   Data, DataRequired, DataSize: string;
-  STD, ETD: string;
 begin
   Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   DataSize:= '';
   if FRows > 0 then
@@ -268,13 +273,15 @@ begin
     false: DataRequired:= 'notrequired';
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
   Html.Add(STD + '<textarea id="' + FId + '" name="' + FName +
                  '" class="' + FClass + '" validate="' +DataRequired + '" ' +
                  Data + DataSize + ' '+ FExtraParam + ' ></textarea>' + ETD);
-
+  Html.Add(ETR);
   result:= Html.Text;
   Html.Free;
 end;
@@ -290,14 +297,8 @@ function TInputCheckBox.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
   Data, DataRequired: string;
-  STD, ETD: string;
 begin
   Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // Having some value ?
   Data:= '';
@@ -310,13 +311,15 @@ begin
     false: DataRequired:= 'notrequired';
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
   Html.Add(STD + '<input id="' + FId + '" type="checkbox" name="' + FName +
                  '" class="' + FClass + '" validate="' + DataRequired + '" ' +
                  Data + ' ' + FExtraParam + ' />' + ETD);
-
+  Html.Add(ETR);
   result:= Html.Text;
   Html.Free;
 end;
@@ -332,14 +335,8 @@ function TInputRadio.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
   Data, DataRequired: string;
-  STD, ETD: string;
 begin
   Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // Having some value ?
   Data:= '';
@@ -352,12 +349,15 @@ begin
     false: DataRequired:= 'notrequired';
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
   Html.Add(STD + '<input id="' + FId + '" type="radio" name="' + FName +
                  '" class="' + FClass + '" validate="' + DataRequired + '" ' +
                  Data + ' ' + FExtraParam + ' />' + ETD);
+  Html.Add(ETR);
   result:= Html.Text;
   Html.Free;
 end;
@@ -372,16 +372,14 @@ end;
 function TInputReset.GetHtml(AInTable: boolean): string;
 Var
   Html: TStrings;
-  STD, ETD: string;
 begin
   Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
+  tableMarks(AInTable);
+  Html.Add(STR);
+  Html.Add(STD + FLabel + ETD);
   Html.Add(STD + '<input class="' + FClass + '" type="reset" value="' + FValue + '" ' +
                  FExtraParam + ' />' + ETD);
+  Html.Add(ETR);
   result:= Html.Text;
   Html.Free;
 end;
@@ -394,18 +392,15 @@ end;
 { TInputSubmit }
 
 function TInputSubmit.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  STD, ETD: string;
+Var Html: TStrings;
 begin
   Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
+  tableMarks(AInTable);
+  Html.Add(STR);
+  Html.Add(STD + FLabel + ETD);
   Html.Add(STD + '<input class="' + FClass + '" type="submit" value="' + FValue +
                '" Name="' + FName + '" ' + FExtraParam + ' />' + ETD);
+  Html.Add(ETR);
   result:= Html.Text;
   Html.Free;
 end;
@@ -419,18 +414,10 @@ end;
 { TInputPassword }
 
 function TInputPassword.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  STD, ETD: string;
+Var Html: TStrings;
+    Data, DataRequired, DataSize: string;
 begin
   Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // Having some value ?
   Data:= '';
@@ -447,15 +434,16 @@ begin
     false: DataRequired:= 'notrequired';
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
   Html.Add(STD + '<input id="' + FId + '" type="password" name="' + FName +
                  '" class="' + FClass + '" validate="' + DataRequired + '" ' +
                  Data + DataSize + ' ' + FExtraParam + ' />' + ETD);
-
+  Html.Add(ETR);
   result:= Html.Text;
-
   Html.Free;
 end;
 
@@ -467,18 +455,10 @@ end;
 { TFile }
 
 function TFile.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  STD, ETD: string;
+Var Html: TStrings;
+    DataRequired: string;
 begin
   Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // is it required ?
   Case FRequired of
@@ -486,6 +466,8 @@ begin
     false: DataRequired:= 'notrequired';
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
@@ -493,8 +475,8 @@ begin
                  '" class="' + FClass + '" validate="' + DataRequired + '" ' +
                  FExtraParam + ' />' + ETD);
   Html.Add('<td class="status"></td>');
+  Html.Add(ETR);
   result:= Html.Text;
-
   Html.Free;
 
 end;
@@ -515,15 +497,8 @@ Var
   Data, DataRequired, DataSize: string;
   NumberValidation, NumberValidationError: string;
   DateValidation, DateValidationError: string;
-  STD, ETD: string;
 begin
   Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
 
   // Having some value ?
   Data:= '';
@@ -570,6 +545,8 @@ begin
     end;
   end;
 
+  tableMarks(AInTable);
+  Html.Add(STR);
   if FLabel <> '' then
     Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
 
@@ -579,8 +556,8 @@ begin
   Html.Add('<td class="status"></td>');
   Html.Insert(0, '<div class="ui-widget">');
   Html.Add('</div>');
+  Html.Add(ETR);
   result:= Html.Text;
-
   Html.Free;
 end;
 
