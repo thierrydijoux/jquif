@@ -15,9 +15,9 @@ Type
   protected
     function GetContent: string; override;
     function GetJs: string; override;
-    procedure SetLanguage(lang:string);
   public
     constructor Create;
+    procedure SetLanguage(lang:string);
   end;
 
 implementation
@@ -34,7 +34,7 @@ end;
 function TJQDatePicker.GetJs: string;
 begin
   FJs.Clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('	$.datepicker.setDefaults( $.datepicker.regional[ "" ] );');
   FJs.Add('	$( "#' + FId + '" ).datepicker( $.datepicker.regional[ "'+FLanguage+'" ] );');

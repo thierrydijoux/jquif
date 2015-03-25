@@ -100,7 +100,7 @@ begin
 
 
   FJs.Clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('		$( "#' + FId + '" ).accordion(');
   FJs.Add('{ animated: "slide" }');

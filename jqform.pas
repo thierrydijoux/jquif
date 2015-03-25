@@ -225,7 +225,7 @@ end;
 function TJQForm.GetJs: string;
 begin
   FJs.Clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(document).ready(function() {');
 // using ajax validation
   FJs.Add('		$("#' + FId + '").validate({');
@@ -248,7 +248,7 @@ function TJQForm.GetCss: string;
 begin
 
   inherited;
-  FCss.Add('<style type="text/css">');
+  FCss.Add('<style>');
   FCss.Add('form.' + FClasse + ' .status {');
   FCss.Add('padding-top: 2px;');
   FCss.Add('padding-left: 8px;');

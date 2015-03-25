@@ -1,0 +1,31 @@
+object DMMAin: TDMMAin
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  Height = 316
+  HorizontalOffset = 76
+  VerticalOffset = 665
+  Width = 408
+  object SpiderCGI1: TSpiderCGI
+    OnRequest = SpiderCGI1Request
+    left = 155
+    top = 237
+  end
+  object saGetData: TSpiderAction
+    Path = '/GetData'
+    OnRequest = saGetDataRequest
+    left = 99
+    top = 167
+  end
+  object saValidateForm: TSpiderAction
+    Path = '/validate'
+    OnRequest = saValidateFormRequest
+    left = 242
+    top = 42
+  end
+  object saLoadExternalFile: TSpiderAction
+    Path = '/load'
+    OnRequest = saLoadExternalFileRequest
+    left = 76
+    top = 39
+  end
+end

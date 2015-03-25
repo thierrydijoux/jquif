@@ -30,7 +30,7 @@ begin
   inherited GetCss;
   if (FWidth > 0) and (FHeight > 0) then
   begin
-    FCss.Add('<style type="text/css">');
+    FCss.Add('<style>');
     FCss.Add('#' + FId + ' { width: ' + inttostr(FWidth) + 'px; height:' + inttostr(FHeight) + 'px; padding: 0.5em; }');
     FCss.Add('#' + FId + ' h3 { text-align: center; margin: 0; }');
     FCss.Add('</style>');
@@ -53,7 +53,7 @@ end;
 function TJQResizer.GetJs: string;
 begin
   FJs.Clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('		$( "#' + FId + '" ).resizable();');
   FJs.Add('	});');

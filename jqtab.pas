@@ -102,7 +102,7 @@ Var
   i: integer;
 begin
   FJs.Clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('		$( "#' + FId + '" ).tabs(');
   if FIsCollapsible then
@@ -125,7 +125,7 @@ begin
 
   if jsAjax then
   begin
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('		$( "#' + FId + '" ).tabs({');
   FJs.Add('			ajaxOptions: {');

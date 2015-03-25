@@ -135,7 +135,7 @@ Var
   i: integer;
 begin
   FJs.clear;
-  FJs.Add('<script type="text/javascript">');
+  FJs.Add('<script>');
   FJs.Add('	$(function() {');
   FJs.Add('                  $( "#dialog:ui-dialog" ).dialog( "destroy" );');
   FJs.Add('                  $( "#' + FId + '" ).dialog({');

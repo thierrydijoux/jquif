@@ -115,7 +115,7 @@ Var
   i: integer;
 begin
   Html:= TStringList.Create;
-  Html.Add('<script type="text/javascript">');
+  Html.Add('<script>');
 //  Html.Add('$(function(){');
   Html.Add('	$(document).ready(function() {');
   Html.Add('$("#' + FHtmlTableID + '").jqGrid({');
