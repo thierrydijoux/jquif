@@ -28,6 +28,7 @@ type
         FCaption: string;
         function GetContent: string; override;
         function GetJs: string; override;
+        function GetCss: string; override;
     public
         constructor Create;
         // Caption of the button
@@ -100,9 +101,9 @@ type
     protected
         function GetContent: string; override;
         function GetJs: string; override;
-        function IconAsString(xicon: iconUI): string;
+        function IconAsString(AIcon: iconUI): string;
     public
-        constructor Create(ALeftRightIcons: boolean); overload;
+        constructor Create; overload;
         property IconRight: iconUI read FIconRight write FIconRight;
         property IconLeft: iconUI read FIconLeft write FIconLeft;
         property IconsOnly: boolean read FIconsOnly write FIconsOnly;
@@ -169,7 +170,8 @@ type
         destructor Destroy; override;
         property Name: string read FName write FName;
         procedure Clear;
-        function AddItem(AValue,ACaption: string; AChecked: boolean = False): integer;
+        function AddItem(ACaption: string; AChecked: boolean = False): integer;
+        function AddItem(ACaption,AValue: string; AChecked: boolean = False): integer;
         property Item[AItemIndex: integer]: TJQToggleButtonItem read GetItem;
         property Count: integer read GetCount;
     end;
@@ -215,9 +217,13 @@ begin
     Result:=FJs.Text;
 end;
 
+function TJQButton.GetCss: string;
+begin
+end;
+
 { TJQIconButton -------------------------------------------------------------- }
 
-constructor TJQIconButton.Create(ALeftRightIcons: boolean);
+constructor TJQIconButton.Create;
 begin
     inherited Create;
     FIconLeft:=iconUI_none;
@@ -258,11 +264,11 @@ begin
     Result:=FJs.Text;
 end;
 
-function TJQIconButton.IconAsString(xicon: iconUI): string;
+function TJQIconButton.IconAsString(AIcon: iconUI): string;
 var auxS : string;
     i : integer;
 begin
-    auxS:=GetEnumName(TypeInfo(iconUI),ord(xicon));
+    auxS:=GetEnumName(TypeInfo(iconUI),ord(AIcon));
     auxS:=copy(auxS,8,100);
     i:=1;
     while i<=length(auxS) do begin
@@ -366,14 +372,19 @@ begin
     Result:=FJs.Text;
 end;
 
-function TJQToggleButton.AddItem(AValue,ACaption: string; AChecked: boolean=False): integer;
+function TJQToggleButton.AddItem(ACaption: string; AChecked: boolean=False): integer;
+begin
+    Result:=AddItem(ACaption, ACaption, AChecked);
+end;
+
+function TJQToggleButton.AddItem(ACaption,AValue: string; AChecked: boolean=False): integer;
 var newItem: TJQToggleButtonItem;
 begin
     newItem:=TJQToggleButtonItem.Create;
     newItem.Value:=AValue;
     newItem.Caption:=ACaption;
     newItem.Checked:=AChecked;
-    FItems.Add(newItem);
+    Result:=FItems.Add(newItem);
 end;
 
 function TJQToggleButton.GetItem(AIndex: integer): TJQToggleButtonItem;

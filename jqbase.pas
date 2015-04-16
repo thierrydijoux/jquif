@@ -25,11 +25,11 @@ type
         // Css content
         FCss: TStrings;
         // Return the generated html
-        function GetContent: string; virtual;
+        function GetContent: string; virtual; abstract;
         // Return the generated javascript
-        function GetJs: string; virtual;
+        function GetJs: string; virtual; abstract;
         // Return the generated css
-        function GetCss: string; virtual;
+        function GetCss: string; virtual; abstract;
     public
         constructor Create;
         destructor Destroy; override;
@@ -46,21 +46,6 @@ type
     end;
 
 implementation
-
-function TJQBase.GetCss: string;
-begin
-    // introducing virtual method
-end;
-
-function TJQBase.GetContent: string;
-begin
-    // introducing virtual method
-end;
-
-function TJQBase.GetJs: string;
-begin
-    // introducing virtual method
-end;
 
 constructor TJQBase.Create;
 begin

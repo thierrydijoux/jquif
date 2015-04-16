@@ -8,7 +8,7 @@ unit HtmlTemplate;
 interface
 
 uses
-    Classes, SysUtils, Contnrs, strUtils;
+    Classes, SysUtils, Contnrs, StrUtils, JQForm, JQButton;
 
 type
     ExtraJSloc = (locNone, locHeader, locBodyTop, locBodyBottom);
@@ -67,10 +67,13 @@ type
         { Add HTML content }
         procedure AddExtraContent(AContent: string);
         { Add javascript script }
-        procedure AddExtraJavaScript(AJavaScript: string);
-        procedure AddExtraJavaScript(location: ExtraJSloc; AJavaScript: string);
+        procedure AddExtraJavaScript(AJavaScript: string; location: ExtraJSloc = locHeader);
         { Add Css }
         procedure AddExtraCss(ACss: string);
+        { Add and TJQButton object }
+        procedure AddButton(AButton: TJQButton);
+        { Add and TJQForm object }
+        procedure AddForm(AForm: TJQForm);
         { Create the object with the template to load }
         constructor Create(ATemplateName: string);
         destructor Destroy; override;
@@ -184,6 +187,21 @@ begin
     FExtraCss.Add(ACss);
 end;
 
+procedure THtmlTemplate.AddButton(AButton: TJQButton);
+begin
+    AddExtraContent(AButton.Content);
+    AddExtraJavaScript(AButton.JavaScript);
+    AddExtraCss(AButton.Css);
+end;
+
+// Warning: The CSS code assumes that stylesheets images are in /css/images
+procedure THtmlTemplate.AddForm(AForm: TJQForm);
+begin
+    AddExtraContent(AForm.Content);
+    AddExtraJavaScript(AForm.JavaScript,locBodyBottom);
+    AddExtraCss(AForm.Css);
+end;
+
 function THtmlTemplate.GetExtraJavaScript(location: ExtraJSloc): string;
 begin
     Result:='';
@@ -197,12 +215,7 @@ begin
     end;
 end;
 
-procedure THtmlTemplate.AddExtraJavaScript(AJavaScript: string);
-begin
-    AddExtraJavaScript(locHeader, AJavaScript);
-end;
-
-procedure THtmlTemplate.AddExtraJavaScript(location: ExtraJSloc; AJavaScript: string);
+procedure THtmlTemplate.AddExtraJavaScript(AJavaScript: string; location: ExtraJSloc);
 begin
     case location of
         locHeader: begin

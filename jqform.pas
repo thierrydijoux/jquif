@@ -5,318 +5,459 @@ unit JQForm;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, HtmlFormElements, JQBase;
+    Classes, SysUtils, Contnrs, HtmlFormElements, JQBase;
 
-Type
+type
+    // The HTML method the form will use to send data to the server
+    TFormMethod = (fmGet, fmPost);
+    // To add HTML code before the form, inside the form, or after the form
+    TPosHtml = (phBefore, phInline, phAfter);
+    // The elements of the form are inside rows of a table or paragraphs
+    TRowsInside = (riNone, riTable, riParagraph);
 
-  TFormMethod = (fmGet, fmPost);
-  TPosHtml = (phBegin, phEnd);
-
-  TJQForm = class(TJQBase)
-  private
-    FAction: String;
-    FExtraParam: string;
-    FFormMethod: TFormMethod;
-    FBeginContent: TStrings;
-    FEndContent: TStrings;
-    FElements: TObjectList;
-    FFormInTable: boolean;
-  protected
-    function GetContent: string; override;
-    function GetJs: string; override;
-    function GetCss: string; override;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    // Add an input text
-    procedure AddEdit(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddEditNumber(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddEditDate(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddPassword(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddTextArea(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddSelect(ACaption: string; AValueList: TStringList; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddRadio(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddCheckBox(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddSubmitButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
-    procedure AddResetButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
-    procedure AddFile(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-    procedure AddHtml(AText: string; APos: TPosHtml);
-    property Action: String read FAction write FAction;
-    property FormMethod: TFormMethod read FFormMethod write FFormMethod;
-    property FormInTable: boolean read FFormInTable write FFormInTable;
-    property ExtraParam: string read FExtraParam write FExtraParam;
-  end;
+    TJQForm = class(TJQBase)
+    private
+        FAction: string;
+        FExtraParam: string;
+        FFormMethod: TFormMethod;
+        FBeforeContent: TStrings;
+        FAfterContent: TStrings;
+        FElements: TObjectList;
+        FLegend: string;
+        FRowsInside: TRowsInside;
+        FValidationOkText: string;
+        FValidationIcons: boolean;
+        FValidationRemote : boolean; //< At least one field have remote Ajax validation
+    protected
+        function GetContent: string; override;
+        function GetJs: string; override;
+        function GetCss: string; override;
+        function GetCss(CssPath: string): string;
+    public
+        constructor Create;
+        destructor Destroy; override;
+        procedure AddEdit(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddPassword(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddTextArea(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddSelect(ACaption: string; AValueList: TStringList; AName: string; AId: string; AClass: string = '');
+        procedure AddRadio(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddCheckBox(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddFile(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddSubmitButton(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddResetButton(ACaption: string; AValue: string; AName: string; AId: string; AClass: string = '');
+        procedure AddHidden(AValue: string; AName: string; AId: string);
+        procedure AddHtml(AText: string; APos: TPosHtml = phInline);
+        procedure AddToolTip(AId: string; ATitle: string; APlaceholder: string = '');
+        procedure AddParameters(AId: string; AParameters: string);
+        procedure AddValidation(AId: string; AMethod: TValidationMethods; ARule:string = 'true'; AMessage:string = '<default>');
+        property Action: string read FAction write FAction;
+        property FormMethod: TFormMethod read FFormMethod write FFormMethod;
+        property Caption: string read FLegend write FLegend;
+        property RowsInside: TRowsInside read FRowsInside write FRowsInside;
+        property ValidationOkText: string read FValidationOkText write FValidationOkText;
+        property ValidationIcons: boolean read FValidationIcons write FValidationIcons;
+        property ExtraParam: string read FExtraParam write FExtraParam;
+    end;
 
 implementation
 
-procedure TJQForm.AddHtml(AText: string; APos: TPosHtml);
-begin
-  Case APos of
-    phBegin:
-      begin
-        FBeginContent.Add(AText);
-      end;
-    phEnd:
-      begin
-        FEndContent.Add(AText);
-      end;
-  end;
-end;
-
-procedure TJQForm.AddFile(ACaption: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TFile;
-begin
-  NewEdit:= TFile.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Classe:= AClass;
-  NewEdit.Name:= AName;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddEditDate(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputText;
-begin
-  NewEdit:= TInputText.CreateAsDate;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddEditNumber(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputText;
-begin
-  NewEdit:= TInputText.CreateAsNumber;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddEdit(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputText;
-begin
-  NewEdit:= TInputText.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddSelect(ACaption: string; AValueList: TStringList; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TSelect;
-begin
-  NewEdit:= TSelect.Create(AValueList);
-  NewEdit.Caption:= ACaption;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddTextArea(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TTextArea;
-begin
-  NewEdit:= TTextArea.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.Required:=ARequired;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddPassword(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputPassword;
-begin
-  NewEdit:= TInputPassword.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  NewEdit.Required:=ARequired;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddCheckBox(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputCheckBox;
-begin
-  NewEdit:= TInputCheckBox.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:=AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  NewEdit.Required:=ARequired;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddRadio(ACaption: string; AValue: string; AName: string; AClass: string; AId: string; ARequired: boolean; AErrorMsg: string);
-Var
-  NewEdit: TInputRadio;
-begin
-  NewEdit:= TInputRadio.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:=AValue;
-  NewEdit.Name:=AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  NewEdit.ErrorMessage:=AErrorMsg;
-  NewEdit.Required:=ARequired;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddSubmitButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
-Var
-  NewEdit: TInputSubmit;
-begin
-  NewEdit:= TInputSubmit.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  FElements.Add(NewEdit);
-end;
-
-procedure TJQForm.AddResetButton(ACaption: string; AValue: string; AName: string; AClass: string; AId: string);
-Var
-  NewEdit: TInputReset;
-begin
-  NewEdit:= TInputReset.Create;
-  NewEdit.Caption:= ACaption;
-  NewEdit.Value:= AValue;
-  NewEdit.Name:= AName;
-  NewEdit.Classe:= AClass;
-  NewEdit.Id:=AId;
-  FElements.Add(NewEdit);
-end;
-
-function TJQForm.GetJs: string;
-begin
-  FJs.Clear;
-  FJs.Add('<script>');
-  FJs.Add('	$(document).ready(function() {');
-// using ajax validation
-  FJs.Add('		$("#' + FId + '").validate({');
-  FJs.Add('			success: function(label) {');
-  FJs.Add('				label.html("&nbsp;").addClass("checked");');
-  FJs.Add('			},');
-
-  FJs.Add('	submitHandler: function(form) {');
-  FJs.Add('	  jQuery(form).ajaxSubmit({');
-  FJs.Add('	    target: "#result"');
-  FJs.Add('	  })');
-  FJs.Add('	}');
-  FJs.Add('		})');
-  FJs.Add('	});');
-  FJs.Add('</script>');
-  result:= FJs.Text;
-end;
-
-function TJQForm.GetCss: string;
-begin
-
-  inherited;
-  FCss.Add('<style>');
-  FCss.Add('form.' + FClasse + ' .status {');
-  FCss.Add('padding-top: 2px;');
-  FCss.Add('padding-left: 8px;');
-  FCss.Add('vertical-align: top;');
-  FCss.Add('width: 246px;');
-  FCss.Add('white-space: nowrap;');
-  FCss.Add('}');
-
-  FCss.Add('form.' + FClasse + ' label.error {');
-  FCss.Add('background:url("<!--csspath-->images/unchecked.png") no-repeat 0px 0px;');
-//  FCss.Add('margin-left: 5px;');
-  FCss.Add('padding-left: 25px;');
-  FCss.Add('font-weight:bold;');
-  FCss.Add('color:#5f83b9;');
-  FCss.Add('width: 250px;');
-  FCss.Add('}');
-  FCss.Add('form.' + FClasse + ' label.checked {');
-  FCss.Add('background:url("<!--csspath-->images/checked.png") no-repeat 0px 0px;');
-  FCss.Add('}');
-  FCss.Add('#warning { display: none; }');
-  FCss.Add('</style>');
-
-  result:= FCss.Text;
-end;
-
-function TJQForm.GetContent: string;
-var i: integer;
-    Method: string;
-begin
-   FContent.Clear;
-
-   case FFormMethod of
-      fmPost: Method:= 'post';
-      fmGet: Method:= 'get';
-   end;
-   FContent.Add('<form method="' + Method + '" class="' + FClasse + '" id="' + FId +
-                '" action="' + FAction +'" ' + FExtraParam + '>');
-   if FFormInTable then FContent.Add('<table>');
-   for i:= 0 to FElements.Count -1 do begin
-      FContent.Add(TBaseElement(FElements.Items[i]).GeneratedHtml[FFormInTable]);
-   end;
-   if FFormInTable then FContent.Add('</table>');
-   FContent.Add('</form>');
-
-   FContent.Add('<br /><br /><div id="result" ></div><br /><br />');
-
-   if FBeginContent.Text <> '' then FContent.Insert(1, FBeginContent.Text);
-   if FEndContent.Text <> '' then FContent.Insert(FContent.Count -2, FEndContent.Text);
-   result:= FContent.Text;
-end;
-
 constructor TJQForm.Create;
 begin
-  inherited Create;
-  FBeginContent:= TStringList.Create;
-  FEndContent:= TStringList.Create;
-  FElements:= TObjectList.create(true);
-  FFormMethod:= fmPost;
-  FFormInTable:= True;
+    inherited Create;
+    FBeforeContent := TStringList.Create;
+    FAfterContent := TStringList.Create;
+    FElements := TObjectList.Create;
+    FFormMethod := fmPost;
+    FLegend := '';
+    FRowsInside := riTable;
+    FValidationOkText := 'ok';
+    FValidationIcons := true;
+    FValidationRemote := false;
 end;
 
 destructor TJQForm.Destroy;
 begin
-  FBeginContent.Free;
-  FEndContent.Free;
-  FElements.Free;
-  inherited destroy;
+    FBeforeContent.Free;
+    FAfterContent.Free;
+    FElements.Free;
+    inherited Destroy;
+end;
+
+procedure TJQForm.AddEdit(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputText;
+begin
+    newElem := TInputText.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddPassword(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputPassword;
+begin
+    newElem := TInputPassword.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddTextArea(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TTextArea;
+begin
+    newElem := TTextArea.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddSelect(ACaption: string; AValueList: TStringList; AName: string; AId: string; AClass: string);
+var newElem: TSelect;
+begin
+    newElem := TSelect.Create(AValueList);
+    newElem.Caption := ACaption;
+    // Value is a TStringList
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddRadio(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputRadio;
+begin
+    newElem := TInputRadio.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddCheckBox(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputCheckBox;
+begin
+    newElem := TInputCheckBox.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+// In <input> type file the value parameter is not used by browsers for security reasons
+procedure TJQForm.AddFile(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TFile;
+begin
+    newElem := TFile.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddSubmitButton(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputSubmit;
+begin
+    newElem := TInputSubmit.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddResetButton(ACaption: string; AValue: string; AName: string; AId: string; AClass: string);
+var newElem: TInputReset;
+begin
+    newElem := TInputReset.Create;
+    newElem.Caption := ACaption;
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := AClass;
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddHidden(AValue: string; AName: string; AId: string);
+var newElem: TInputHidden;
+begin
+    newElem := TInputHidden.Create;
+    newElem.Caption := '';
+    newElem.Value := AValue;
+    newElem.Name := AName;
+    newElem.Id := AId;
+    newElem.Classe := '';
+    FElements.Add(newElem);
+end;
+
+procedure TJQForm.AddHtml(AText: string; APos: TPosHtml);
+var newElem: TInlineHTML;
+begin
+    case APos of
+        phBefore: begin
+            FBeforeContent.Add(AText);
+        end;
+        phInline: begin
+            newElem := TInlineHTML.Create;
+            newElem.Content := AText;
+            FElements.Add(newElem);
+        end;
+        phAfter: begin
+            FAfterContent.Add(AText);
+        end;
+    end;
+end;
+
+// The ToolTips uses the id (not the name) of the element.
+// The ATitle parameter is shown as a floating tooltip or hint over the element
+// The APlaceholder parameter is shown inside the element as a grayed text
+// If ATitle is defined it supersedes the default error message when required = true.
+procedure TJQForm.AddToolTip(AId: string; ATitle: string; APlaceholder: string);
+var okFound: boolean;
+    i : integer;
+    auxS : string;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            auxS:='';
+            if ATitle<>'' then auxS:=auxS+'title="'+ATitle+'"';
+            if APlaceholder<>'' then auxS:=auxS+' placeholder="'+APlaceholder+'"';
+            (FElements.Items[i] as TBaseElement).ToolTips:=auxS;
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
+// The parameters uses the id (not the name) of the element.
+procedure TJQForm.AddParameters(AId: string; AParameters: string);
+var okFound: boolean;
+    i : integer;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            (FElements.Items[i] as TBaseElement).ExtraParam:=AParameters;
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
+(* With jQuery Validation Plugin as of version 1.13.1, there are three different
+   ways to achieve field validation, with almost identical final behavoir. For example,
+   if we want to validate a text field with a minumun 2 characters and required:
+
+   A) As HTML5 markup, the browser will do the job, without needing any plugin
+      <input type="text" name="nombre" id="idName" required minlength="2">
+
+   B) As extended HTML parameters which would be interpreted by Validation plugin
+      <input type="text" name="nombre" id="idName" data-rule-required="true" data-rule-minlength="2">
+      <script>
+      	$("#idFormu").validate();
+      </script>
+
+   C) All validation expressed as plugin rules, nothing in HTML
+      <input type="text" name="nombre" id="idName">
+      <script>
+	$("#idFormu").validate(
+             { rules: { nombre: { required: true, minlength: 2 } } }
+	);
+      </script>
+
+   In this JQUIF library we took a mixed approach, the following are inserted
+   as HTML5 input parameters: required, minlength, maxlength, min, max (as in A).
+   The others types of validation will be put inside validate() rules as json data
+   (as in C). All messages are going inside validate() as json data.
+   This way if there are troubles with JavaScript not enabled or other JS errors,
+   the validation of these types will be enforced by the browser.
+*)
+
+// The Validation Plugin internally uses the name (not the id) of the element for purpose of validation.
+// If AMessage is missing, the special <default> implies that the default message (localized) is shown.
+// If AMessage is empty string, then no message are shown (and no icon also).
+// When required = true, the error message prevalence order is:
+//   1) The AMessage defined here (not empty, and with ARule='true')
+//   2) The tooltip ATitle if defined
+//   3) The default (localized) message
+procedure TJQForm.AddValidation(AId: string; AMethod: TValidationMethods; ARule:string; AMessage:string);
+var okFound : boolean;
+    i : integer;
+    customName,customMeth : string;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            if AMethod<>vmCustom then begin
+                (FElements.Items[i] as TBaseInput).AddValidation(AMethod,ARule,AMessage);
+            end else begin
+                // Only one custom method per element
+                customName:=(FElements.Items[i] as TBaseInput).Id+'Custom';
+                // ARule contains the inner JavaScript function code, it could use
+                // the arguments value, element, param. It must resolve to boolean
+                // true when the field is valid.
+                customMeth:='$.validator.addMethod("'+customName+'", function(value, element, param) {'+
+                            ARule+'}, "'+AMessage+'"); ';
+                (FElements.Items[i] as TBaseInput).GeneratedCustom:=customMeth;
+                // The following to be inside the validation rules, without message
+                ARule:=customName;
+                (FElements.Items[i] as TBaseInput).AddValidation(AMethod,ARule,'<default>');
+            end;
+            if AMethod=vmRemote then FValidationRemote:=true;
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
+// If the fields will be in rows of a table, the fieldset tags should go
+// surounding all the table
+function TJQForm.GetContent: string;
+var i: integer;
+    method: string;
+    inTable : boolean;
+begin
+    FContent.Clear;
+    FContent.Add(FBeforeContent.Text);
+    case FFormMethod of
+        fmPost: method:='post';
+        fmGet: method:='get';
+    end;
+    FContent.Add('<form method="' + method + '" class="' + FClasse + '" '+
+                 'id="' + FId + '" action="' + FAction +'" ' + FExtraParam + '>');
+    if FLegend<>'' then FContent.Add('<fieldset><legend>'+FLegend+'</legend>');
+    inTable:=(FRowsInside=riTable);
+    if inTable then FContent.Add('<table>');
+    for i:=0 to FElements.Count-1 do begin
+        if not (FElements.Items[i] is TInlineHTML) then begin
+            if inTable then FContent.Add('<tr>')
+            else if FRowsInside=riParagraph then FContent.Add('<p>');
+        end;
+        // The inTable is needed for the inners <td> inside a row
+        FContent.Add((FElements.Items[i] as TBaseElement).GeneratedHtml[inTable]);
+        if not (FElements.Items[i] is TInlineHTML) then begin
+            if inTable then FContent.Add('</tr>')
+            else if FRowsInside=riParagraph then FContent.Add('</p>');
+        end;
+    end;
+    if inTable then FContent.Add('</table>');
+    if FLegend<>'' then FContent.Add('</fieldset>');
+    FContent.Add('</form>');
+    FContent.Add(FAfterContent.Text);
+    Result:=FContent.Text;
+end;
+
+// Here we put validation rules and validation messages
+// All this code should be at the end of page, or be put inside $(document).ready(function(){ }
+// The order is important: First the rules, then the messages and last success
+function TJQForm.GetJs: string;
+var i: integer;
+    auxS, auxE : string;
+begin
+    FJs.Clear;
+    FJs.Add('<script>');
+    // Custom methods
+    auxS:='';
+    for i:=0 to FElements.Count-1 do begin
+        if FElements.Items[i] is TBaseInput then begin
+            auxE:=(FElements.Items[i] as TBaseInput).GeneratedCustom;
+            if auxE<>'' then begin
+                if auxS<>'' then auxS:=auxS+#13;
+                auxS:=auxS+auxE;
+            end;
+        end;
+    end;
+    if auxS<>'' then begin
+        FJs.Add(auxS);
+    end;
+    // Main validate procedure
+    FJs.Add('  $("#'+FId+'").validate( {');
+    if FValidationRemote then FJs.Add('onkeyup: false,'); // remains onBlur and OnSubmit validation
+    auxS:='';
+    for i:=0 to FElements.Count-1 do begin
+        if FElements.Items[i] is TBaseInput then begin
+            auxE:=(FElements.Items[i] as TBaseInput).GeneratedRules;
+            if auxE<>'' then begin
+                if auxS<>'' then auxS:=auxS+',';
+                auxS:=auxS+auxE;
+            end;
+        end;
+    end;
+    if auxS<>'' then begin
+        FJs.Add('rules: { '+auxS+' },');
+    end;
+    auxS:='';
+    for i:=0 to FElements.Count-1 do begin
+        if FElements.Items[i] is TBaseInput then begin
+            auxE:=(FElements.Items[i] as TBaseInput).GeneratedMessages;
+            if auxE<>'' then begin
+                if auxS<>'' then auxS:=auxS+',';
+                auxS:=auxS+auxE;
+            end;
+        end;
+    end;
+    if auxS<>'' then begin
+        FJs.Add('messages: { '+auxS+' },');
+    end;
+    FJs.Add('    success: ');
+    FJs.Add('      function(label) {');
+    FJs.Add('        label.addClass("valid").text("'+FValidationOkText+'");');
+    FJs.Add('    }');
+    FJs.Add('  });');
+    FJs.Add('</script>');
+    Result := FJs.Text;
+end;
+
+function TJQForm.GetCss: string;
+begin
+    Result := GetCss('/css');
+end;
+
+// This CSS markup should be located in the header
+function TJQForm.GetCss(CssPath: string): string;
+var space : string;
+begin
+    if not FValidationIcons then begin
+        Result := '';
+        exit;
+    end;
+    space:='22px';
+    FCss.Clear;
+    FCss.Add('<style>');
+    FCss.Add('  form.'+FClasse+' label.error {');
+    if FRowsInside=riTable then FCss.Add('margin-left: '+space+';');
+    FCss.Add('    background:url("'+CssPath+'/images/unchecked.gif");');
+    FCss.Add('    background-repeat: no-repeat;');
+    FCss.Add('    background-position: left center;');
+    FCss.Add('    padding-left: '+space+';');
+    FCss.Add('  }');
+    FCss.Add('  form.'+FClasse+' label.valid {');
+    if FRowsInside=riTable then FCss.Add('margin-left: '+space+';');
+    FCss.Add('    background:url("'+CssPath+'/images/checked.gif");');
+    FCss.Add('    background-repeat: no-repeat;');
+    FCss.Add('    background-position: left center;');
+    FCss.Add('    padding-left: '+space+';');
+    FCss.Add('  }');
+    FCss.Add('</style>');
+    Result := FCss.Text;
 end;
 
 end.
-
