@@ -1,4 +1,4 @@
-unit jqAutoComplete;
+unit JQAutoComplete;
 
 {$mode objfpc}{$H+}
 
@@ -13,8 +13,10 @@ type
         FLabel: string;
         FSourceListName: string;
         FValues: TStrings;
+    protected
         function GetContent: string; override;
-        function GetJs: string; override;
+        function GetJavaScript(location: ExtraJSloc): string; override;
+        function GetCss: string; override;
     public
         constructor Create;
         destructor Destroy; override;
@@ -23,7 +25,6 @@ type
         property InputLabel: string read FLabel write FLabel;
         property SourceListName: string read FSourceListName write FSourceListName;
         property Values: TStrings read FValues write FValues;
-        property Js: string read GetJs;
     end;
 
 implementation
@@ -52,24 +53,35 @@ begin
     Result:=FContent.Text;
 end;
 
-function TJQAutoComplete.GetJs: string;
+function TJQAutoComplete.GetJavaScript(location: ExtraJSloc): string;
 var ListValue: string;
     i: integer;
 begin
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    ListValue:='';
     for i:=0 to FValues.Count-1 do begin
         ListValue:=ListValue+'"'+FValues.Strings[i]+'"';
         if i<FValues.Count-1 then ListValue:=ListValue+',';
     end;
-    FJs.Clear;
-    FJs.Add('<script>');
-    FJs.Add('  $(function(){');
-    FJs.Add('    var '+FSourceListName+' = ['+ListValue+'];');
-    FJs.Add('    $("#'+FId+'").autocomplete({');
-    FJs.Add('      source: '+FSourceListName);
-    FJs.Add('    });');
-    FJs.Add('  });');
-    FJs.Add('</script>');
-    Result := FJs.Text;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add('  $(function(){');
+    FJsHeader.Add('    var '+FSourceListName+' = ['+ListValue+'];');
+    FJsHeader.Add('    $("#'+FId+'").autocomplete({');
+    FJsHeader.Add('      source: '+FSourceListName);
+    FJsHeader.Add('    });');
+    FJsHeader.Add('  });');
+    FJsHeader.Add('</script>');
+    Result:=FJsHeader.Text;
+end;
+
+function TJQAutoComplete.GetCss: string;
+begin
+    FCss.Clear;
+    Result:=FCss.Text;
 end;
 
 end.

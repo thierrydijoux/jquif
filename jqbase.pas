@@ -1,7 +1,8 @@
-{ @abstract(Base class for all jquery ui objects)
-  @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-  base class for JQuery ui object }
 unit JQBase;
+{< @abstract(Base class for all jQuery ui objects)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Base class for jQuery-UI object
+}
 
 {$mode objfpc}{$H+}
 
@@ -11,6 +12,8 @@ uses
     Classes, SysUtils;
 
 type
+    ExtraJSloc = (locNone, locHeader, locBodyTop, locBodyBottom);
+
     { Base class for JQUERY-UI object }
     TJQBase = class
     protected
@@ -21,13 +24,15 @@ type
         // HTML content
         FContent: TStrings;
         // Generated javascript
-        FJs: TStrings;
+        FJsHeader: TStrings;  //< To be put inside <head></head>
+        FJsTop: TStrings;     //< To be put at the begining of <body></body>
+        FJsBottom: TStrings;  //< To be put at the end of <body></body>
         // Css content
         FCss: TStrings;
         // Return the generated html
         function GetContent: string; virtual; abstract;
         // Return the generated javascript
-        function GetJs: string; virtual; abstract;
+        function GetJavaScript(location: ExtraJSloc): string; virtual; abstract;
         // Return the generated css
         function GetCss: string; virtual; abstract;
     public
@@ -40,7 +45,7 @@ type
         // class of the html element
         property Classe: string read FClasse write FClasse;
         // Generated Javascript
-        property JavaScript: string read GetJs;
+        property JavaScript[location: ExtraJSloc]: string read GetJavaScript;
         // Generated css
         property Css: string read GetCss;
     end;
@@ -49,17 +54,21 @@ implementation
 
 constructor TJQBase.Create;
 begin
-    FClasse := '';
-    FId := '';
-    FContent := TStringList.Create;
-    FJs := TStringList.Create;
-    FCss := TStringList.Create;
+    FClasse:='';
+    FId:='';
+    FContent:=TStringList.Create;
+    FJsHeader:=TStringList.Create;
+    FJsTop:=TStringList.Create;
+    FJsBottom:=TStringList.Create;
+    FCss:=TStringList.Create;
 end;
 
 destructor TJQBase.Destroy;
 begin
     FContent.Free;
-    FJs.Free;
+    FJsHeader.Free;
+    FJsTop.Free;
+    FJsBottom.Free;
     FCss.Free;
     inherited Destroy;
 end;

@@ -1,7 +1,8 @@
-{ @abstract(Class for Buttons)
-  @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-  Class for Buttons }
 unit JQButton;
+{< @abstract(Class for Buttons)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Class for Buttons
+}
 
 {$mode objfpc}{$H+}
 
@@ -19,7 +20,7 @@ type
         // and Toogle should be "radio" or "checkbox". See http://www.w3.org/TR/wai-aria/roles#widget_roles
         FRole: string;
         // The type applies for the <button> tag, and can be "button", "submit" or "reset"
-        // The <button> tag is used only in JQButton and JQIconButton
+        // The <button> tag is used only in JQButton and JQIconButton classes
         FType: string;
     protected
         // Enable or not the button
@@ -27,7 +28,7 @@ type
         // Caption of the button
         FCaption: string;
         function GetContent: string; override;
-        function GetJs: string; override;
+        function GetJavaScript(location: ExtraJSloc): string; override;
         function GetCss: string; override;
     public
         constructor Create;
@@ -100,7 +101,7 @@ type
         FIconsOnly : boolean;
     protected
         function GetContent: string; override;
-        function GetJs: string; override;
+        function GetJavaScript(location: ExtraJSloc): string; override;
         function IconAsString(AIcon: iconUI): string;
     public
         constructor Create; overload;
@@ -123,11 +124,13 @@ type
     TJQHRefButton = class(TJQButton)
     private
         FHref: string;
+        FTarget: string;
     protected
         function GetContent: string; override;
     public
         constructor Create;
         property Href: string read FHref write FHref;
+        property Target: string read FTarget write FTarget;
     end;
 
   { Button type for a toggle button }
@@ -164,7 +167,7 @@ type
         function GetCount: integer;
     protected
         function GetContent: string; override;
-        function GetJs: string; override;
+        function GetJavaScript(location: ExtraJSloc): string; override;
     public
         constructor Create(AButtonType: TToggleButtonType);
         destructor Destroy; override;
@@ -203,22 +206,28 @@ begin
     Result:=FContent.Text;
 end;
 
-// JavaScript code nedeed for JQUERY-UI styles
-function TJQButton.GetJs: string;
+// JavaScript code nedeed for jQuery UI styles
+function TJQButton.GetJavaScript(location: ExtraJSloc): string;
 begin
-    FJs.Clear;
-    FJs.Add('<script>');
-    FJs.Add('  $(function(){');
-    FJs.Add('    $("#'+FId+'").button(');
-    if not FEnabled then FJs.Add('{ disabled: true }');
-    FJs.Add('    );');
-    FJs.Add('  });');
-    FJs.Add('</script>');
-    Result:=FJs.Text;
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add('  $(function(){');
+    FJsHeader.Add('    $("#'+FId+'").button(');
+    if not FEnabled then FJsHeader.Add('{ disabled: true }');
+    FJsHeader.Add('    );');
+    FJsHeader.Add('  });');
+    FJsHeader.Add('</script>');
+    Result:=FJsHeader.Text;
 end;
 
 function TJQButton.GetCss: string;
 begin
+    FCss.Clear;
+    Result:=FCss.Text;
 end;
 
 { TJQIconButton -------------------------------------------------------------- }
@@ -236,15 +245,19 @@ begin
     Result:=inherited GetContent;
 end;
 
-function TJQIconButton.GetJs: string;
+function TJQIconButton.GetJavaScript(location: ExtraJSloc): string;
 var auxS : string;
 begin
-    FJs.Clear;
-    FJs.Add('<script>');
-    FJs.Add('  $(function(){');
-    FJs.Add('    $("#'+FId+'").button(');
-    if not FEnabled then FJs.Add('{ disabled: true },');
-    if FIconsOnly then FJs.Add('{ text: false },');
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add('  $(function(){');
+    FJsHeader.Add('    $("#'+FId+'").button(');
+    if not FEnabled then FJsHeader.Add('{ disabled: true },');
+    if FIconsOnly then FJsHeader.Add('{ text: false },');
     auxS:='';
     if FIconLeft<>iconUI_none then begin
         auxS:='{ icons: { primary: "'+IconAsString(FIconLeft)+'" ';
@@ -258,10 +271,10 @@ begin
             auxS:=auxS+'} }';
         end;
     end;
-    FJs.Add(auxS+' );');
-    FJs.Add('  });');
-    FJs.Add('</script>');
-    Result:=FJs.Text;
+    FJsHeader.Add(auxS+' );');
+    FJsHeader.Add('  });');
+    FJsHeader.Add('</script>');
+    Result:=FJsHeader.Text;
 end;
 
 function TJQIconButton.IconAsString(AIcon: iconUI): string;
@@ -304,14 +317,19 @@ constructor TJQHRefButton.Create;
 begin
     inherited Create;
     FRole:='link';
+    FHref:='';
+    FTarget:='';
 end;
 
 function TJQHRefButton.GetContent: string;
+var xtarget : string;
 begin
+    xtarget:='';
+    if FTarget<>'' then xtarget:='target="'+FTarget+'"';
     FContent.Clear;
     FContent.Text:='<a role="'+FRole+'" '+
                    'class="ui-button '+FClasse+'" id="'+FId+'" '+
-                   'href="'+FHRef+'">'+
+                   'href="'+FHRef+'" '+xtarget+'>'+
                    '<span>'+FCaption+'</span>'+
                    '</a>';
     Result:=FContent.Text;
@@ -360,16 +378,20 @@ begin
     Result:=FContent.Text;
 end;
 
-function TJQToggleButton.GetJs: string;
+function TJQToggleButton.GetJavaScript(location: ExtraJSloc): string;
 begin
-    FJs.Clear;
-    FJs.Add('<script>');
-    FJs.Add('  $(function(){');
-    FJs.Add('    $("#'+FId+'").buttonset(');
-    FJs.Add('    );');
-    FJs.Add('  });');
-    FJs.Add('</script>');
-    Result:=FJs.Text;
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add('  $(function(){');
+    FJsHeader.Add('    $("#'+FId+'").buttonset(');
+    FJsHeader.Add('    );');
+    FJsHeader.Add('  });');
+    FJsHeader.Add('</script>');
+    Result:=FJsHeader.Text;
 end;
 
 function TJQToggleButton.AddItem(ACaption: string; AChecked: boolean=False): integer;

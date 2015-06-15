@@ -1,8 +1,6 @@
-{
-@abstract(Class for JQTab)
+{@abstract(Class for JQTab)
 @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-Class for JQTab.
-}
+Class for JQTab.}
 unit JQTab;
 
 {$mode objfpc}{$H+}
@@ -21,7 +19,6 @@ Type
   TJQTabItem = class
   private
     FTitle: string;
-    FTabName: string;
     FContent: TStrings;
     FUseAjax: boolean;
     FAjaxURL: string;
@@ -43,7 +40,7 @@ Type
     @abstract(Class for JQTab)
     Class for JQTab.
   }
-  TJqTab = class(TJQBase)
+  TJQTab = class(TJQBase)
   private
     FTabList: TObjectList;
     FIsCollapsible: boolean;
@@ -52,10 +49,11 @@ Type
     function GetCount: integer;
   protected
     function GetContent: string; override;
-    function GetJs: string; override;
+    function GetJavaScript(location: ExtraJSloc): string; override;
+    function GetCss: string; override;
   public
-    constructor create;
-    destructor destroy; override;
+    constructor Create;
+    destructor Destroy; override;
     function AddTab(ATabName: string): integer;
     procedure Clear;
     property Tab[AItemIndex: integer]: TJQTabItem read GetTab;
@@ -68,136 +66,135 @@ Type
 
 implementation
 
-{ TJqTab }
+{ TJQTab }
 
-function TJqTab.GetContent: string;
-Var
-  i: integer;
+constructor TJQTab.Create;
 begin
-  FContent.Clear;
-  FContent.Add('<div id="' + FId + '">');
-  FContent.Add('	<ul>');
-  for i:= 0 to FTabList.Count -1 do
-    if TJQTabItem(FTabList.Items[i]).UseAjax then
-      FContent.Add('<li><a href="' + TJQTabItem(FTabList.Items[i]).AjaxURL + '">' + TJQTabItem(FTabList.Items[i]).Title +'</a></li>')
-    else
-      FContent.Add('<li><a href="#tabs-' + intToStr(i+1) + '">' + TJQTabItem(FTabList.Items[i]).Title +'</a></li>');
-  FContent.Add('	</ul>');
-  for i:= 0 to FTabList.Count -1 do
-  begin
-    if not TJQTabItem(FTabList.Items[i]).UseAjax then
-    begin
-      FContent.Add('	<div id="tabs-' + intToStr(i+1) + '">');
-      FContent.Add(TJQTabItem(FTabList.Items[i]).Content.Text);
-      FContent.Add('	</div>');
+    inherited Create;
+    FTabList:=TObjectList.create(true);
+    FIsCollapsible:=false;
+end;
+
+destructor TJQTab.Destroy;
+begin
+    FTabList.Free;
+    inherited Destroy;
+end;
+
+function TJQTab.GetContent: string;
+var i : integer;
+begin
+    FContent.Clear;
+    FContent.Add('<div id="' + FId + '">');
+    FContent.Add('  <ul>');
+    for i:=0 to FTabList.Count-1 do begin
+        if TJQTabItem(FTabList.Items[i]).UseAjax then begin
+            FContent.Add('<li><a href="' + TJQTabItem(FTabList.Items[i]).AjaxURL + '">' + TJQTabItem(FTabList.Items[i]).Title +'</a></li>')
+        end else begin
+            FContent.Add('<li><a href="#tabs-' + intToStr(i+1) + '">' + TJQTabItem(FTabList.Items[i]).Title +'</a></li>');
+        end;
     end;
-  end;
-  FContent.Add('</div>');
-  result:= FContent.Text;
-end;
-
-function TJqTab.GetJs: string;
-Var
-  jsAjax: boolean;
-  i: integer;
-begin
-  FJs.Clear;
-  FJs.Add('<script>');
-  FJs.Add('	$(function() {');
-  FJs.Add('		$( "#' + FId + '" ).tabs(');
-  if FIsCollapsible then
-    FJs.Add('{ collapsible: true }');
-  if FOpenOnMouseOver then
-    if FIsCollapsible then
-      FJs.Add(',{ event: "mouseover" }')
-    else
-      FJs.Add('{ event: "mouseover" }');
-
-  FJs.Add(');');
-  FJs.Add('	});');
-  FJs.Add('</script>');
-  for i:= 0 to TabCount -1 do
-    if Tab[i].UseAjax then
-    begin
-       jsAjax:= true;
-       break;
+    FContent.Add('  </ul>');
+    for i:=0 to FTabList.Count-1 do begin
+        if not TJQTabItem(FTabList.Items[i]).UseAjax then begin
+            FContent.Add(' <div id="tabs-' + intToStr(i+1) + '">');
+            FContent.Add(TJQTabItem(FTabList.Items[i]).Content.Text);
+            FContent.Add(' </div>');
+        end;
     end;
-
-  if jsAjax then
-  begin
-  FJs.Add('<script>');
-  FJs.Add('	$(function() {');
-  FJs.Add('		$( "#' + FId + '" ).tabs({');
-  FJs.Add('			ajaxOptions: {');
-  FJs.Add('				error: function( xhr, status, index, anchor ) {');
-  FJs.Add('					$( anchor.hash ).html(');
-  FJs.Add('						"Couldn''t load this tab. We''ll try to fix this as soon as possible. " +');
-  FJs.Add('						"If this wouldn''t be a demo." );');
-  FJs.Add('				}');
-  FJs.Add('			}');
-  FJs.Add('		});');
-  FJs.Add('	});');
-  FJs.Add('</script>');
-  end;
-
-
-
-  result:= FJs.Text;
+    FContent.Add('</div>');
+    Result:=FContent.Text;
 end;
 
-function TJqTab.GetTab(AIndex: integer): TJQTabItem;
+function TJQTab.GetJavaScript(location: ExtraJSloc): string;
+var jsAjax : boolean;
+    i : integer;
 begin
-  result:= TJQTabItem(FTabList.Items[AIndex]);
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add(' $(function() {');
+    FJsHeader.Add('  $( "#' + FId + '" ).tabs(');
+    if FIsCollapsible then FJsHeader.Add('{ collapsible: true }');
+    if FOpenOnMouseOver then begin
+        if FIsCollapsible then FJsHeader.Add(',{ event: "mouseover" }')
+                          else FJsHeader.Add('{ event: "mouseover" }');
+    end;
+    FJsHeader.Add(');');
+    FJsHeader.Add(' });');
+    FJsHeader.Add('</script>');
+    for i:=0 to TabCount-1 do begin
+        if Tab[i].UseAjax then begin
+            jsAjax:= true;
+            break;
+        end;
+    end;
+    if jsAjax then begin
+        FJsHeader.Add('<script>');
+        FJsHeader.Add(' $(function() {');
+        FJsHeader.Add('  $( "#' + FId + '" ).tabs({');
+        FJsHeader.Add('   ajaxOptions: {');
+        FJsHeader.Add('     error: function( xhr, status, index, anchor ) {');
+        FJsHeader.Add('     $( anchor.hash ).html(');
+        FJsHeader.Add('     "Couldn''t load this tab. We''ll try to fix this as soon as possible. " +');
+        FJsHeader.Add('     "If this wouldn''t be a demo." );');
+        FJsHeader.Add('     }');
+        FJsHeader.Add('   }');
+        FJsHeader.Add('  });');
+        FJsHeader.Add(' });');
+        FJsHeader.Add('</script>');
+    end;
+    Result:=FJsHeader.Text;
 end;
 
-function TJqTab.GetCount: integer;
+function TJQTab.GetCss: string;
 begin
-  result:= FTabList.Count;
+    FCss.Clear;
+    Result:=FCss.Text;
 end;
 
-function TJqTab.AddTab(ATabName: string): integer;
-Var
-  NewTab: TJQTabItem;
+function TJQTab.GetTab(AIndex: integer): TJQTabItem;
 begin
-  NewTab:= TJQTabItem.Create;
-  NewTab.Title:= ATabName;
-  result:= FTabList.Add(NewTab);
+    Result:=TJQTabItem(FTabList.Items[AIndex]);
 end;
 
-procedure TJqTab.Clear;
+function TJQTab.GetCount: integer;
 begin
-  FTabList.Clear;
+    Result:=FTabList.Count;
 end;
 
-constructor TJqTab.create;
+function TJQTab.AddTab(ATabName: string): integer;
+var NewTab: TJQTabItem;
 begin
-  inherited Create;
-  FTabList:= TObjectList.create(true);
-  FIsCollapsible:= false;
+    NewTab:=TJQTabItem.Create;
+    NewTab.Title:=ATabName;
+    Result:=FTabList.Add(NewTab);
 end;
 
-destructor TJqTab.destroy;
+procedure TJQTab.Clear;
 begin
-  FTabList.Free;
-  inherited destroy;
+    FTabList.Clear;
 end;
 
 { TJQTabItem }
 
-procedure TJQTabItem.AddContent(AValue: string);
-begin
-  FContent.Add(AValue);
-end;
-
 constructor TJQTabItem.Create;
 begin
-  FContent:= TStringList.Create;
+    FContent:=TStringList.Create;
 end;
 
 destructor TJQTabItem.Destroy;
 begin
-  FContent.Free;
-  inherited destroy;
+    FContent.Free;
+    inherited Destroy;
+end;
+
+procedure TJQTabItem.AddContent(AValue: string);
+begin
+    FContent.Add(AValue);
 end;
 
 end.

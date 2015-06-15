@@ -71,7 +71,7 @@ type
     // Introduces element validation via jQuery Validation Plugin.
     TBaseInput = class(TBaseElement)
     protected
-        FLabel: string;
+        FCaption: string;
         FValue: string;
         FValidationH: string; //< Inserted as HTML5 input parameters
         FValidationR: string; //< Inserted as validation rules
@@ -80,7 +80,7 @@ type
         function GetHtml(AInTable: boolean): string; override;
     public
         constructor Create;
-        property Caption: string read FLabel write FLabel;
+        property Caption: string read FCaption write FCaption;
         property Value: string read FValue write FValue;
         property GeneratedRules: string read FValidationR;
         property GeneratedMessages: string read FValidationM;
@@ -107,8 +107,8 @@ type
     end;
 
     TSelectItem = record
-        Value: string;
         Caption: string;
+        Value: string;
         selected: boolean;
         disabled: boolean;
     end;
@@ -121,8 +121,8 @@ type
         constructor Create;
         constructor Create(AItemList: TStringList); overload;
         destructor Destroy; override;
-        function AddItem(AValue: string; ALabel: string): integer;
-        function AddItem(AValue: string; ALabel: string;
+        function AddItem(ACaption: string; AValue: string): integer;
+        function AddItem(ACaption: string; AValue: string;
             ASelected, ADisabled: boolean): integer;
     end;
 
@@ -202,19 +202,21 @@ begin
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     html:=STD;
-    if FLabel<>'' then html:=html+'<label for="'+FId+'">'+FLabel+'</label>';
+    if FCaption<>'' then html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     html:=html+ETD+#13;
     html:=html+STD+
           '<input type="'+Atype+'" name="'+FName+'" id="'+FId+'" '+
           AValue + AClass + FValidationH+' ' + FToolTips+' '+ FExtraParam+ '/>'+
           ETD+#13;
     if AInTable then begin
-        // When not in a table the following label is automatically generated
-        // by the Validation Plugin. If present (with proper id and class) it is
-        // used by the Validation Plugin.
+        // If the label for is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
         html:=html+STD+
               '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
               ETD+#13;
+    end else begin
+        // When not in a table the label for is automatically generated
+        // by the Validation Plugin with the proper id and class=error
     end;
     Result:=Html;
 end;
@@ -307,7 +309,7 @@ begin
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     html:=STD;
-    if FLabel<>'' then html:=html+'<label for="'+FId+'">'+FLabel+'</label>';
+    if FCaption<>'' then html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     html:=html+ETD+#13;
     html:=html+STD+
           '<textarea name="'+FName+'" id="'+FId+'" '+
@@ -335,8 +337,10 @@ begin
     inherited Create;
     try
         SetLength(FItemsList, 0);
-        for i := 0 to AItemList.Count - 1 do
+        for i := 0 to AItemList.Count - 1 do begin
+            // The pairs are name=value (name is the caption shown)
             AddItem(AItemList.Names[i], AItemList.Values[AItemList.Names[i]]);
+        end;
     except
         on e: Exception do
             raise Exception.Create('TSelect Create: ' + e.Message);
@@ -359,8 +363,8 @@ begin
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     Html.Add(STD);
-    if FLabel<>'' then begin
-        Html.Add('<label for="'+FId+'">'+FLabel+'</label>');
+    if FCaption<>'' then begin
+        Html.Add('<label for="'+FId+'">'+FCaption+'</label>');
     end;
     Html.Add(ETD);
     Html.Add(STD + '<select name="'+FName+'" id="' + FId +'" '+
@@ -384,20 +388,20 @@ begin
     Html.Free;
 end;
 
-function TSelect.AddItem(AValue: string; ALabel: string): integer;
+function TSelect.AddItem(ACaption: string; AValue: string): integer;
 begin
-    Result:=AddItem(AValue, ALabel, False, False);
+    Result:=AddItem(ACaption, AValue, False, False);
 end;
 
-function TSelect.AddItem(AValue: string; ALabel: string;
+function TSelect.AddItem(ACaption: string; AValue: string;
     ASelected, ADisabled: boolean): integer;
 var Count: integer;
 begin
     Count:=Length(FItemsList);
     Inc(Count);
     SetLength(FItemsList, Count);
+    FItemsList[Count - 1].Caption:=ACaption;
     FItemsList[Count - 1].Value:=AValue;
-    FItemsList[Count - 1].Caption:=ALabel;
     FItemsList[Count - 1].selected:=ASelected;
     FItemsList[Count - 1].disabled:=ADisabled;
     Result := Count - 1;

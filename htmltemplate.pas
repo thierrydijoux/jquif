@@ -1,18 +1,17 @@
-{ @abstract(Class for HTML Template )
-  @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-  Class for HTML Template.}
 unit HtmlTemplate;
+{< @abstract(Class for HTML Template )
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Class for HTML Template.
+}
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-    Classes, SysUtils, Contnrs, StrUtils, JQForm, JQButton;
+    Classes, SysUtils, Contnrs, StrUtils, JQBase;
 
 type
-    ExtraJSloc = (locNone, locHeader, locBodyTop, locBodyBottom);
-
   { @abstract(Tag Item) }
     TTagItem = class
     private
@@ -52,9 +51,9 @@ type
         FFileName: string;
         FContent: TStrings;
         FExtraCss: TStrings;
-        FExtraJavaScriptH: TStrings;  //< in then header (default)
-        FExtraJavaScriptBT: TStrings; //< in the body top
-        FExtraJavaScriptBB: TStrings; //< in the body bottom
+        FExtraJavaScriptH: TStrings; //< in then header (default)
+        FExtraJavaScriptT: TStrings; //< in the body top
+        FExtraJavaScriptB: TStrings; //< in the body bottom
         FExtraContent: TStrings;
         FTags: TTags;
         function GetContent: string;
@@ -62,21 +61,20 @@ type
         function GetExtraJavaScript(location: ExtraJSloc): string;
         function GetExtraContent: string;
     public
+        { Create the object with the template to load }
+        constructor Create(ATemplateName: string);
+        destructor Destroy; override;
         { Load the template }
         function Load: boolean;
         { Add HTML content }
         procedure AddExtraContent(AContent: string);
         { Add javascript script }
-        procedure AddExtraJavaScript(AJavaScript: string; location: ExtraJSloc = locHeader);
+        procedure AddExtraJavaScript(AScript: string; location: ExtraJSloc = locHeader); overload;
+        procedure AddExtraJavaScript(AObject: TJQBase; location: ExtraJSloc = locHeader); overload;
         { Add Css }
         procedure AddExtraCss(ACss: string);
-        { Add and TJQButton object }
-        procedure AddButton(AButton: TJQButton);
-        { Add and TJQForm object }
-        procedure AddForm(AForm: TJQForm);
-        { Create the object with the template to load }
-        constructor Create(ATemplateName: string);
-        destructor Destroy; override;
+        { Add and TJQBase or descendant object }
+        procedure AddObject(AObject: TJQBase);
         { Return the generated HTML }
         property Content: string read GetContent;
         { List of tags }
@@ -148,10 +146,10 @@ begin
         FContent.Free;
     if Assigned(FExtraJavaScriptH) then
         FExtraJavaScriptH.Free;
-    if Assigned(FExtraJavaScriptBT) then
-        FExtraJavaScriptBT.Free;
-    if Assigned(FExtraJavaScriptBB) then
-        FExtraJavaScriptBB.Free;
+    if Assigned(FExtraJavaScriptT) then
+        FExtraJavaScriptT.Free;
+    if Assigned(FExtraJavaScriptB) then
+        FExtraJavaScriptB.Free;
     if Assigned(FExtraCss) then
         FExtraCss.Free;
     if Assigned(FExtraContent) then
@@ -187,19 +185,14 @@ begin
     FExtraCss.Add(ACss);
 end;
 
-procedure THtmlTemplate.AddButton(AButton: TJQButton);
-begin
-    AddExtraContent(AButton.Content);
-    AddExtraJavaScript(AButton.JavaScript);
-    AddExtraCss(AButton.Css);
-end;
-
 // Warning: The CSS code assumes that stylesheets images are in /css/images
-procedure THtmlTemplate.AddForm(AForm: TJQForm);
+procedure THtmlTemplate.AddObject(AObject: TJQBase);
 begin
-    AddExtraContent(AForm.Content);
-    AddExtraJavaScript(AForm.JavaScript,locBodyBottom);
-    AddExtraCss(AForm.Css);
+    AddExtraContent(AObject.Content);
+    AddExtraJavaScript(AObject,locHeader);
+    AddExtraJavaScript(AObject,locBodyTop);
+    AddExtraJavaScript(AObject,locBodyBottom);
+    AddExtraCss(AObject.Css);
 end;
 
 function THtmlTemplate.GetExtraJavaScript(location: ExtraJSloc): string;
@@ -208,32 +201,40 @@ begin
     case location of
         locHeader: if assigned(FExtraJavaScriptH) then
                 Result:=FExtraJavaScriptH.Text;
-        locBodyTop: if assigned(FExtraJavaScriptBT) then
-                Result:=FExtraJavaScriptBT.Text;
-        locBodyBottom: if assigned(FExtraJavaScriptBB) then
-                Result:=FExtraJavaScriptBB.Text;
+        locBodyTop: if assigned(FExtraJavaScriptT) then
+                Result:=FExtraJavaScriptT.Text;
+        locBodyBottom: if assigned(FExtraJavaScriptB) then
+                Result:=FExtraJavaScriptB.Text;
     end;
 end;
 
-procedure THtmlTemplate.AddExtraJavaScript(AJavaScript: string; location: ExtraJSloc);
+procedure THtmlTemplate.AddExtraJavaScript(AScript: string; location: ExtraJSloc);
 begin
+    if AScript='' then exit;
     case location of
         locHeader: begin
             if not assigned(FExtraJavaScriptH) then
-                FExtraJavaScriptH := TStringList.Create;
-            FExtraJavaScriptH.Add(AJavaScript);
+                FExtraJavaScriptH:=TStringList.Create;
+            FExtraJavaScriptH.Add(AScript);
         end;
         locBodyTop: begin
-            if not assigned(FExtraJavaScriptBT) then
-                FExtraJavaScriptBT := TStringList.Create;
-            FExtraJavaScriptBT.Add(AJavaScript);
+            if not assigned(FExtraJavaScriptT) then
+                FExtraJavaScriptT:=TStringList.Create;
+            FExtraJavaScriptT.Add(AScript);
         end;
         locBodyBottom: begin
-            if not assigned(FExtraJavaScriptBB) then
-                FExtraJavaScriptBB := TStringList.Create;
-            FExtraJavaScriptBB.Add(AJavaScript);
+            if not assigned(FExtraJavaScriptB) then
+                FExtraJavaScriptB:=TStringList.Create;
+            FExtraJavaScriptB.Add(AScript);
         end;
     end;
+end;
+
+procedure THtmlTemplate.AddExtraJavaScript(AObject: TJQBase; location: ExtraJSloc);
+var AScript: string;
+begin
+    AScript:=AObject.JavaScript[location];
+    AddExtraJavaScript(AScript, location);
 end;
 
 function THtmlTemplate.GetContent: string;
@@ -245,10 +246,10 @@ begin
         Htm := AnsiReplaceStr(Htm, '<!--extraCss-->', FExtraCss.Text);
     if Assigned(FExtraJavaScriptH) then
         Htm := AnsiReplaceStr(Htm, '<!--extraJs.header-->', FExtraJavaScriptH.Text);
-    if Assigned(FExtraJavaScriptBT) then
-        Htm := AnsiReplaceStr(Htm, '<!--extraJs.body.top-->', FExtraJavaScriptBT.Text);
-    if Assigned(FExtraJavaScriptBB) then
-        Htm := AnsiReplaceStr(Htm, '<!--extraJs.body.bottom-->', FExtraJavaScriptBB.Text);
+    if Assigned(FExtraJavaScriptT) then
+        Htm := AnsiReplaceStr(Htm, '<!--extraJs.body.top-->', FExtraJavaScriptT.Text);
+    if Assigned(FExtraJavaScriptB) then
+        Htm := AnsiReplaceStr(Htm, '<!--extraJs.body.bottom-->', FExtraJavaScriptB.Text);
     if Assigned(FExtraContent) then
         Htm := AnsiReplaceStr(Htm, '<!--extraContent-->', FExtraContent.Text);
     for i := 0 to FTags.Count - 1 do begin

@@ -1,61 +1,27 @@
-unit JqDatePicker;
+unit JQDatePicker;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, jqBase;
+  Classes, SysUtils, JQBase;
 
 Type
   TJQDatePicker = class(TJQBase)
   private
     FRole: string;
-    FLanguage : string;
+    FLanguage : string; //< valid values are ISO 639-1 two-letter codes (with optional country code)
   protected
     function GetContent: string; override;
-    function GetJs: string; override;
+    function GetJavaScript(location: ExtraJSloc): string; override;
+    function GetCss: string; override;
   public
     constructor Create;
-    procedure SetLanguage(lang:string);
+    property Language: string read FLanguage write FLanguage;
   end;
 
 implementation
-
-{ TJQDatePicker }
-
-function TJQDatePicker.GetContent: string;
-begin
-  FContent.Clear;
-//  FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' + '<span class="ui-button-text">' + FCaption + '</span></div>';
-  result:= '<div id="' + FId + '"></div>';
-end;
-
-function TJQDatePicker.GetJs: string;
-begin
-  FJs.Clear;
-  FJs.Add('<script>');
-  FJs.Add('	$(function() {');
-  FJs.Add('	$.datepicker.setDefaults( $.datepicker.regional[ "" ] );');
-  FJs.Add('	$( "#' + FId + '" ).datepicker( $.datepicker.regional[ "'+FLanguage+'" ] );');
-  FJs.Add('	});');
-  FJs.Add('	</script>');
-  result:= FJs.Text;
-end;
-
-constructor TJQDatePicker.Create;
-begin
-  inherited Create;
-  FRole:= 'role="button"';
-  FLanguage:= '';
-  FClasse:= 'class="ui-datepicker-inline ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all"';
-end;
-
-// lang should be a two character string, such as 'en', 'fr', 'es'
-procedure TJQDatePicker.SetLanguage(lang:string);
-begin
-  FLanguage:= lang;
-end;
 
 {
 <div class="hasDatepicker" id="datepicker"><div style="display: block;" class="ui-datepicker-inline ui-datepicker ui-widget ui-widget-content ui-helper-clearfix ui-corner-all">
@@ -66,5 +32,47 @@ end;
 <span class="ui-icon ui-icon-circle-triangle-e">Next</span></a>
 <div class="ui-datepicker-title"><span class="ui-datepicker-month">January</span>&nbsp;<span class="ui-datepicker-year">2012</span></div></div><table class="ui-datepicker-calendar"><thead><tr><th class="ui-datepicker-week-end"><span title="Sunday">Su</span></th><th><span title="Monday">Mo</span></th><th><span title="Tuesday">Tu</span></th><th><span title="Wednesday">We</span></th><th><span title="Thursday">Th</span></th><th><span title="Friday">Fr</span></th><th class="ui-datepicker-week-end"><span title="Saturday">Sa</span></th></tr></thead><tbody><tr><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">1</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">2</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">3</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">4</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">5</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">6</a></td><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">7</a></td></tr><tr><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">8</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">9</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">10</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">11</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">12</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">13</a></td><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">14</a></td></tr><tr><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">15</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">16</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">17</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">18</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">19</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">20</a></td><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">21</a></td></tr><tr><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">22</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">23</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">24</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">25</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">26</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">27</a></td><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">28</a></td></tr><tr><td class=" ui-datepicker-week-end " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">29</a></td><td class=" ui-datepicker-days-cell-over  ui-datepicker-current-day ui-datepicker-today" onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default ui-state-highlight ui-state-active" href="#">30</a></td><td class=" " onclick="DP_jQuery_1327919812441.datepicker._selectDay('#datepicker',0,2012, this);return false;"><a class="ui-state-default" href="#">31</a></td><td class=" ui-datepicker-other-month ui-datepicker-unselectable ui-state-disabled">&nbsp;</td><td class=" ui-datepicker-other-month ui-datepicker-unselectable ui-state-disabled">&nbsp;</td><td class=" ui-datepicker-other-month ui-datepicker-unselectable ui-state-disabled">&nbsp;</td><td class=" ui-datepicker-week-end ui-datepicker-other-month ui-datepicker-unselectable ui-state-disabled">&nbsp;</td></tr></tbody></table></div></div>
 }
+
+{ TJQDatePicker }
+
+constructor TJQDatePicker.Create;
+begin
+    inherited Create;
+    FRole:='role="button"';
+    FLanguage:='en';
+    FClasse:='class="ui-datepicker-inline ui-datepicker ui-widget ui-widget-content '+
+                    'ui-helper-clearfix ui-corner-all"';
+end;
+
+function TJQDatePicker.GetContent: string;
+begin
+    FContent.Clear;
+    //FContent.Text:= '<div ' + FRole + ' ' + FClasse + ' id="' + FId + '">' + '<span class="ui-button-text">' + FCaption + '</span></div>';
+    Result:='<div id="'+FId+'"></div>';
+end;
+
+function TJQDatePicker.GetJavaScript(location: ExtraJSloc): string;
+begin
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add(' $(function() {');
+    FJsHeader.Add(' $.datepicker.setDefaults( $.datepicker.regional[ "" ] );');
+    FJsHeader.Add(' $( "#'+FId+'" ).datepicker( ');
+    if FLanguage<>'en' then FJsHeader.Add('  $.datepicker.regional[ "'+FLanguage+'" ] );');
+    FJsHeader.Add(' });');
+    FJsHeader.Add('</script>');
+    Result:=FJsHeader.Text;
+end;
+
+function TJQDatePicker.GetCss: string;
+begin
+    FCss.Clear;
+    Result:=FCss.Text;
+end;
+
 end.
 

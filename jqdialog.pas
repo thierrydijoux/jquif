@@ -1,9 +1,7 @@
-{
-@abstract(Class for JQuery dialog)
+{@abstract(Class for JQuery dialog)
 @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-Class for JQuery dialog.
-}
-unit jqDialog;
+Class for JQuery dialog.}
+unit JQDialog;
 
 {$mode objfpc}{$H+}
 
@@ -55,7 +53,8 @@ Type
     FButtons: TButtons;
   protected
     function GetContent: string; override;
-    function GetJs: string; override;
+    function GetJavaScript(location: ExtraJSloc): string; override;
+    function GetCss: string; override;
   public
     constructor Create(AModal: boolean); overload;
     destructor Destroy; override;
@@ -78,112 +77,111 @@ implementation
 { TButtons }
 
 function TButtons.Add(ACaption: string): integer;
-Var
-  NewButton: TJQDialogButton;
+var NewButton: TJQDialogButton;
 begin
-  NewButton:= TJQDialogButton.Create(ACaption);
-  result:= self.Add(NewButton);
+    NewButton:=TJQDialogButton.Create(ACaption);
+    result:=self.Add(NewButton);
 end;
 
 function TButtons.GetItems(AIndex: integer): TJQDialogButton;
 begin
-  result:= TJQDialogButton(inherited GetItems(AIndex));
+    result:=TJQDialogButton(inherited GetItems(AIndex));
 end;
 
 procedure TButtons.SetItems(AIndex: integer; const Value: TJQDialogButton);
 begin
-  inherited SetItems(AIndex, Value);
+    inherited SetItems(AIndex, Value);
 end;
 
 function TButtons.Add(AObject: TJQDialogButton): integer;
 begin
-  result:= inherited Add(AObject);
+    result:=inherited Add(AObject);
 end;
 
 { TJQDialogButtons }
 
 constructor TJQDialogButton.Create;
 begin
-  FScript:= TStringList.Create;
+    FScript:=TStringList.Create;
 end;
 constructor TJQDialogButton.Create(ACaption : string);
 begin
-  FScript:= TStringList.Create;
-  FCaption:= ACaption;
+    FScript:=TStringList.Create;
+    FCaption:=ACaption;
 end;
 
 destructor TJQDialogButton.Destroy;
 begin
-  FScript.Free;
-  inherited destroy;
+    FScript.Free;
+    inherited Destroy;
 end;
 
 { TJQDialog }
 
-function TJQDialog.GetContent: string;
-begin
-  FContent.clear;
-  FContent.Add('<div id="' + FId + '" title="' + FTitle + '">');
-  FContent.Add('<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>');
-  FContent.Add(FMessage + '</p>');
-  FContent.Add('</div>');
-  result:= FContent.Text;
-end;
-
-function TJQDialog.GetJs: string;
-Var
-  i: integer;
-begin
-  FJs.clear;
-  FJs.Add('<script>');
-  FJs.Add('	$(function() {');
-  FJs.Add('                  $( "#dialog:ui-dialog" ).dialog( "destroy" );');
-  FJs.Add('                  $( "#' + FId + '" ).dialog({');
-  if FHeight > 0 then
-    FJs.Add('                     height:' + inttostr(FHeight) + ',');
-  if FAutoOpen then
-    FJs.Add('                       autoOpen: true,')
-  else
-    FJs.Add('                       autoOpen: false,');
-  if FModal then
-    FJs.Add('                     modal: true,')
-  else
-    FJs.Add('                     modal: false,');
-  if FResizable then
-    FJs.Add('                     resizable: true')
-  else
-    FJs.Add('                     resizable: false');
-  if Buttons.Count > 0 then
-  begin
-    FJs.Add(',');
-    FJs.Add('buttons: {');
-    for i:= 0 to Buttons.Count -1 do
-    begin;
-      FJs.Add(Buttons.Items[i].Caption + ': function() {');
-      FJs.Add(Buttons.Items[i].Script.Text);
-      FJs.Add('}');
-    end;
-    FJs.Add('}');
-  end;
-  FJs.Add('                     });');
-  FJs.Add('                });');
-  FJs.Add('</script>');
-  result:= FJs.Text;
-end;
-
 constructor TJQDialog.Create(AModal: boolean);
 begin
-  inherited create;
-  FModal:= AModal;
-  FResizable:= false;
-  FAutoOpen:= false;
-  FButtons:= TButtons.Create;
+    inherited create;
+    FModal:=AModal;
+    FResizable:=false;
+    FAutoOpen:=false;
+    FButtons:=TButtons.Create;
 end;
 
 destructor TJQDialog.Destroy;
 begin
-  FButtons.Free;
-  inherited destroy;
+    FButtons.Free;
+    inherited Destroy;
+end;
+
+function TJQDialog.GetContent: string;
+begin
+    FContent.clear;
+    FContent.Add('<div id="' + FId + '" title="' + FTitle + '">');
+    FContent.Add('<p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>');
+    FContent.Add(FMessage + '</p>');
+    FContent.Add('</div>');
+    result:=FContent.Text;
+end;
+
+function TJQDialog.GetJavaScript(location: ExtraJSloc): string;
+var i : integer;
+begin
+    if location<>locHeader then begin
+        Result:='';
+        exit;
+    end;
+    FJsHeader.Clear;
+    FJsHeader.Add('<script>');
+    FJsHeader.Add(' $(function() {');
+    FJsHeader.Add('     $( "#dialog:ui-dialog" ).dialog( "destroy" );');
+    FJsHeader.Add('     $( "#' + FId + '" ).dialog({');
+    if FHeight>0 then FJsHeader.Add('   height:' + inttostr(FHeight) + ',');
+    if FAutoOpen then FJsHeader.Add('   autoOpen: true,')
+                 else FJsHeader.Add('   autoOpen: false,');
+    if FModal then FJsHeader.Add('   modal: true,')
+              else FJsHeader.Add('   modal: false,');
+    if FResizable then FJsHeader.Add('   resizable: true')
+                  else FJsHeader.Add('   resizable: false');
+    if Buttons.Count>0 then begin
+        FJsHeader.Add(',');
+        FJsHeader.Add('buttons: {');
+        for i:=0 to Buttons.Count-1 do begin
+            FJsHeader.Add(Buttons.Items[i].Caption + ': function() {');
+            FJsHeader.Add(Buttons.Items[i].Script.Text);
+            FJsHeader.Add('}');
+        end;
+        FJsHeader.Add('}');
+    end;
+    FJsHeader.Add('   });');
+    FJsHeader.Add(' });');
+    FJsHeader.Add('</script>');
+    result:=FJsHeader.Text;
+end;
+
+function TJQDialog.GetCss: string;
+begin
+    FCss.Clear;
+    Result:=FCss.Text;
 end;
 
 end.
