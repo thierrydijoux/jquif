@@ -1,4 +1,7 @@
 unit JQResizer;
+{< @abstract(An HTML div that could be resized)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+}
 
 {$mode objfpc}{$H+}
 

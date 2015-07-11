@@ -1,4 +1,7 @@
 unit BaseList;
+{< @abstract(Base list for genral use)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+}
 
 {$mode objfpc}{$H+}
 
@@ -7,8 +10,7 @@ interface
 uses
   Classes, SysUtils, Contnrs;
 
-Type
-
+type
   TBaseList = class
   private
     function GetCount: integer; virtual;

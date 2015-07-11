@@ -244,12 +244,11 @@ begin
 end;
 
 // Ajusta el tipo de columna de la tabla, y puede ser uno de los siguientes:
-//    0 = normal  (default)
-//    1 = input o textbox
-//    2 = hiperlink
-//    3 = button
+//    0 = normal     (default with optional color)
+//    1 = input box
+//    2 = hiperlink  (cell at right with the link)
+//    3 = button     (cell at right with the onclick event)
 //    4 = checkbox
-//    5 = normal con color de fondo
 procedure TJQTable.SetColumnType(col: integer; value: integer);
 begin
     FColumnType[col-1]:=value;
@@ -312,8 +311,13 @@ begin
             if not FVisible[i-1] then continue;
             colorC:='';  // No color cell by default
             case FColumnType[i-1] of
-                0: begin // Normal cell
+                0: begin // Normal cell (optional background color following #COLOR#)
                        celda:=Cell[k,i];
+                       posi:=pos('#COLOR#', celda);
+                       if posi>0 then begin
+                           colorC:=copy(celda,posi+6,20); // includes the second #
+                           celda:=copy(celda,1,posi-1);
+                       end;
                    end;
                 1: begin // Cell for data input
                        celda:='<input type=text size='+IntToStr(FColumnParam[i-1])+
@@ -334,14 +338,6 @@ begin
                               ' value="'+Cell[k,i]+'" ';
                        if FColumnParam[i-1]=0 then celda:=celda+'>'
                                               else celda:=celda+' checked >';
-                   end;
-                5: begin // Cell with background color (color following #COLOR#)
-                       celda:=Cell[k,i];
-                       posi:=pos('#COLOR#', celda);
-                       if posi>0 then begin
-                           colorC:=copy(celda,posi+6,20); // includes the #
-                           celda:=copy(celda,1,posi-1);
-                       end;
                    end;
                 else begin
                        celda:='';
@@ -426,7 +422,7 @@ begin
         // See http://www.datatables.net/manual/styling/jqueryui
         FCss.Add('<link rel="stylesheet" href="../css/dataTables.jqueryui.css">');
         // The following makes the toolbars as wide as the table (we take off the 8px padding)
-        // and centered as the table does in the dataTables_wrapper
+        // and centered as the table does in the dataTables_wrapper div
         FCss.Add('<style>'+
                  '  .dataTables_wrapper .ui-toolbar {'+
                  '      width: '+IntToStr(TotalWidth)+'px; '+

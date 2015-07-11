@@ -1,7 +1,8 @@
-{@abstract(Class for JQuery dialog)
-@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-Class for JQuery dialog.}
 unit JQDialog;
+{< @abstract(Class for JQuery dialog)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Class for JQuery dialog.
+}
 
 {$mode objfpc}{$H+}
 

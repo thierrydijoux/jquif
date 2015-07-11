@@ -1,4 +1,7 @@
 unit JQAutoComplete;
+{< @abstract(Autocomplete feature)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+}
 
 {$mode objfpc}{$H+}
 

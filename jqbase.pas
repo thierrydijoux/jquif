@@ -1,5 +1,5 @@
 unit JQBase;
-{< @abstract(Base class for all jQuery ui objects)
+{< @abstract(Base class for all jQuery-UI objects)
    @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
    Base class for jQuery-UI object
 }

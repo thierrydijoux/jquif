@@ -1,7 +1,8 @@
-{@abstract(Class for JQTab)
-@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-Class for JQTab.}
 unit JQTab;
+{< @abstract(Class for tabulator)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Class for jQuery-UI tabulator
+}
 
 {$mode objfpc}{$H+}
 

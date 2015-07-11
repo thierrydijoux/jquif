@@ -4,6 +4,8 @@ unit JQForm;
    JQForms modelates the contents and behaivor of HTML forms and its input elements.
    It uses jQuery Validation plugin version 1.13.1, see http://jqueryvalidation.org,
    and can do validations frontside with JavaScript or remote serverside validations.
+
+   TODO: Have multiple fieldsets, each with own legend
 }
 
 {$mode objfpc}{$H+}
@@ -63,6 +65,8 @@ type
         procedure AddToolTip(AId: string; ATitle: string; APlaceholder: string = '');
         procedure AddParameters(AId: string; AParameters: string);
         procedure AddValidation(AId: string; AMethod: TValidationMethods; ARule:string = 'true'; AMessage:string = '<default>');
+        procedure SetSelected(AId: string; AIndex: integer); overload;
+        procedure SetSelected(AId: string; AValue: string); overload;
         property Action: string read FAction write FAction;
         property FormMethod: TFormMethod read FFormMethod write FFormMethod;
         property Caption: string read FLegend write FLegend;
@@ -141,7 +145,7 @@ begin
     newElem.Id := AId;
     newElem.Caption := ACaption;
     newElem.Name := AName;
-    // Value is a TStringList
+    // Value is a TStringList and goes in constructor
     newElem.Classe := AClass;
     FElements.Add(newElem);
 end;
@@ -343,12 +347,48 @@ begin
     if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
 end;
 
+// Puts "selected" HTML attribute to the TSelect element at index AIndex (base 1)
+procedure TJQForm.SetSelected(AId: string; AIndex: integer);
+var okFound: boolean;
+    i: integer;
+    combo: TSelect;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            combo:=(FElements.Items[i] as TSelect);
+            combo.SelectedItem(AIndex);
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
+// Puts "selected" HTML attribute to the TSelect element with value AValue
+procedure TJQForm.SetSelected(AId: string; AValue: string);
+var okFound: boolean;
+    i: integer;
+    combo: TSelect;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            combo:=(FElements.Items[i] as TSelect);
+            combo.SelectedItem(AValue);
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
 // If the fields will be in rows of a table, the fieldset tags should go
 // surounding all the table
 function TJQForm.GetContent: string;
 var i: integer;
     method: string;
-    inTable : boolean;
+    inTable,inParag : boolean;
 begin
     FContent.Clear;
     FContent.Add(FBeforeContent.Text);
@@ -360,17 +400,18 @@ begin
                  'id="' + FId + '" action="' + FAction +'" ' + FExtraParam + '>');
     if FLegend<>'' then FContent.Add('<fieldset><legend>'+FLegend+'</legend>');
     inTable:=(FRowsInside=riTable);
+    inParag:=(FRowsInside=riParagraph);
     if inTable then FContent.Add('<table>');
     for i:=0 to FElements.Count-1 do begin
         if not (FElements.Items[i] is TInlineHTML) then begin
             if inTable then FContent.Add('<tr>')
-            else if FRowsInside=riParagraph then FContent.Add('<p>');
+            else if inParag then FContent.Add('<p>');
         end;
-        // The inTable is needed for the inners <td> inside a row
+        // The inTable parameter is needed for the inners <td> inside a row
         FContent.Add((FElements.Items[i] as TBaseElement).GeneratedHtml[inTable]);
         if not (FElements.Items[i] is TInlineHTML) then begin
             if inTable then FContent.Add('</tr>')
-            else if FRowsInside=riParagraph then FContent.Add('</p>');
+            else if inParag then FContent.Add('</p>');
         end;
     end;
     if inTable then FContent.Add('</table>');
@@ -413,6 +454,7 @@ begin
             end;
             // Main validate procedure
             FJsBottom.Add('  $("#'+FId+'").validate( {');
+            FJsBottom.Add('    ignore: "", '); // To allow validation of hidden or not visible elements
             if FValidationRemote then FJsBottom.Add('onkeyup: false,'); // remains onBlur and OnSubmit validation
             auxS:='';
             for i:=0 to FElements.Count-1 do begin

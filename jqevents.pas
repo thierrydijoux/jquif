@@ -1,7 +1,8 @@
-{ @abstract(Class for Events)
-  @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-  Class for Events }
 unit JQEvents;
+{< @abstract(Class for Events)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Class for Events
+}
 
 {$mode objfpc}{$H+}
 
@@ -14,13 +15,13 @@ type
     // Type of JQUERY event: See https://api.jquery.com/on/
     // List of posible events: http://www.w3.org/TR/DOM-Level-3-Events/#event-types-list
     TJsEvent = (
-        jeClick, //< On Click event
+        jeClick,       //< On Click event
         jeDoubleClick, //< On Doble-click event
-        jeMouseEnter, //< On MouseEnter event
-        jeMouseLeave, //< On MouseLeave event
-        jeMouseOver, //< On MouseOver
-        jeFocus, //< On receive focus
-        jeBlur //< On lost focus
+        jeMouseEnter,  //< On MouseEnter event
+        jeMouseLeave,  //< On MouseLeave event
+        jeMouseOver,   //< On MouseOver
+        jeFocus,       //< On receive focus
+        jeBlur         //< On lost focus
         );
 
     TJavaScriptEvent = class

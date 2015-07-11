@@ -1,4 +1,7 @@
 unit HtmlFormElements;
+{< @abstract(Elements that goes inside a form)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+}
 
 {$mode objfpc}{$H+}
 
@@ -124,6 +127,8 @@ type
         function AddItem(ACaption: string; AValue: string): integer;
         function AddItem(ACaption: string; AValue: string;
             ASelected, ADisabled: boolean): integer;
+        procedure SelectedItem(AIndex: integer); overload;
+        procedure SelectedItem(AValue: string); overload;
     end;
 
     TInputRadio = class(TBaseInput)
@@ -166,11 +171,11 @@ uses
 procedure TBaseElement.tableMarks(AInTable: boolean);
 begin
     if AInTable then begin
-        STD := '<td>';
-        ETD := '</td>';
+        STD:= '<td>';
+        ETD:= '</td>';
     end else begin
-        STD := '';
-        ETD := '';
+        STD:= '';
+        ETD:= '';
     end;
 end;
 
@@ -187,7 +192,7 @@ end;
 
 constructor TBaseInput.Create;
 begin
-    FElementType := etNone;
+    FElementType:= etNone;
 end;
 
 function TBaseInput.GetHtml(AInTable: boolean): string;
@@ -202,20 +207,22 @@ begin
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     html:=STD;
-    if FCaption<>'' then html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
-    html:=html+ETD+#13;
+    if FCaption<>'' then begin
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
+    end;
+    html:=html+ETD;
     html:=html+STD+
           '<input type="'+Atype+'" name="'+FName+'" id="'+FId+'" '+
-          AValue + AClass + FValidationH+' ' + FToolTips+' '+ FExtraParam+ '/>'+
-          ETD+#13;
+          AValue + AClass + FValidationH+' ' + FToolTips+' '+ FExtraParam+ '>'+
+          ETD;
     if AInTable then begin
-        // If the label for is present (with proper id and class=error)
+        // If the "label for" is present (with proper id and class=error)
         // it is automatically used by the Validation Plugin.
         html:=html+STD+
               '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
-              ETD+#13;
+              ETD;
     end else begin
-        // When not in a table the label for is automatically generated
+        // When not in a table the "label for" is automatically generated
         // by the Validation Plugin with the proper id and class=error
     end;
     Result:=Html;
@@ -309,16 +316,23 @@ begin
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     html:=STD;
-    if FCaption<>'' then html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
-    html:=html+ETD+#13;
+    if FCaption<>'' then begin
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
+    end;
+    html:=html+ETD;
     html:=html+STD+
           '<textarea name="'+FName+'" id="'+FId+'" '+
           AValue + AClass + FValidationH+' ' + FToolTips+' ' + FExtraParam+'>'+
-          '</textarea>'+ETD+#13;
+          '</textarea>'+ETD;
     if AInTable then begin
+        // If the "label for" is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
         html:=html+STD+
               '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
-              ETD+#13;
+              ETD;
+    end else begin
+        // When not in a table the "label for" is automatically generated
+        // by the Validation Plugin with the proper id and class=error
     end;
     Result:=html;
 end;
@@ -354,38 +368,41 @@ begin
 end;
 
 function TSelect.GetHtml(AInTable: boolean): string;
-var Html: TStrings;
-    OneItem, AClass: string;
+var html, OneItem, AClass: string;
     i: integer;
 begin
-    Html:=TStringList.Create;
+    html:='';
     AClass:='';
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
-    Html.Add(STD);
+    html:=html+STD;
     if FCaption<>'' then begin
-        Html.Add('<label for="'+FId+'">'+FCaption+'</label>');
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     end;
-    Html.Add(ETD);
-    Html.Add(STD + '<select name="'+FName+'" id="' + FId +'" '+
-             AClass + FValidationH+' ' + FToolTips+' ' + FExtraParam + '>');
+    html:=html+ETD;
+    html:=html+STD+'<select name="'+FName+'" id="' + FId +'" '+ AClass +
+                   FValidationH+' ' + FToolTips+' ' + FExtraParam + '>';
     for i:=0 to Length(FItemsList)-1 do begin
-        OneItem := '<option value="' + FItemsList[i].Value + '" ';
+        OneItem:= '<option value="' + FItemsList[i].Value + '" ';
         if FItemsList[i].selected then
-            OneItem := OneItem + 'selected ';
+            OneItem:= OneItem + 'selected ';
         if FItemsList[i].disabled then
-            OneItem := OneItem + 'disabled ';
-        OneItem := OneItem + '>' + FItemsList[i].Caption + '</option>';
-        Html.Add(OneItem);
+            OneItem:= OneItem + 'disabled ';
+        OneItem:=OneItem + '>' + FItemsList[i].Caption + '</option>';
+        html:=html+OneItem;
     end;
-    Html.Add('</select>'+ETD);
+    html:=html+'</select>'+ETD;
     if AInTable then begin
-        Html.Add(STD);
-        Html.Add('<label for="'+FId+'" id="'+FId+'-error" class="error"></label>');
-        Html.Add(ETD);
+        // If the "label for" is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
+        html:=html+STD+
+              '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
+              ETD;
+    end else begin
+        // When not in a table the "label for" is automatically generated
+        // by the Validation Plugin with the proper id and class=error
     end;
-    Result:=Html.Text;
-    Html.Free;
+    Result:=html;
 end;
 
 function TSelect.AddItem(ACaption: string; AValue: string): integer;
@@ -400,11 +417,30 @@ begin
     Count:=Length(FItemsList);
     Inc(Count);
     SetLength(FItemsList, Count);
-    FItemsList[Count - 1].Caption:=ACaption;
-    FItemsList[Count - 1].Value:=AValue;
-    FItemsList[Count - 1].selected:=ASelected;
-    FItemsList[Count - 1].disabled:=ADisabled;
-    Result := Count - 1;
+    FItemsList[Count-1].Caption:=ACaption;
+    FItemsList[Count-1].Value:=AValue;
+    FItemsList[Count-1].selected:=ASelected;
+    FItemsList[Count-1].disabled:=ADisabled;
+    Result:=Count-1;
+end;
+
+// Marks with "selected" the element at index AIndex (base 1)
+procedure TSelect.SelectedItem(AIndex: integer);
+begin
+    FItemsList[AIndex-1].selected:=true;
+end;
+
+// Marks with "selected" the first element with value AValue
+// If no such element is found, nothing is done
+procedure TSelect.SelectedItem(AValue: string);
+var i: integer;
+begin
+    for i:=0 to Length(FItemsList)-1 do begin
+        if FItemsList[i].Value=AValue then begin
+            FItemsList[i].selected:=true;
+            break;
+        end;
+    end;
 end;
 
 { TInputRadio ---------------------------------------------------------------- }

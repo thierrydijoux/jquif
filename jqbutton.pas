@@ -12,16 +12,22 @@ uses
     Classes, SysUtils, JQBase, Contnrs;
 
 type
+  { Button types for HTML <button> tag buttons, used in JQButton and JQIconButton
+    See https://www.w3.org/wiki/HTML/Elements/button }
+    TButtonType = ( btButton, btSubmit, btReset );
+
+  { Button types for a toggle buttons, used in TJQToggleButton }
+    TToggleButtonType = ( tbRadio, tbCheckBox );
+
   { @abstract(Simple button class)
     Simple button class }
     TJQButton = class(TJQBase)
     private
-        // Role should be"button" by default as a widget role. Href should be "link"
-        // and Toogle should be "radio" or "checkbox". See http://www.w3.org/TR/wai-aria/roles#widget_roles
+        // Role should be "button" by default as a widget role, Href button role
+        // should be "link", and Toogle button role should be "radio" or "checkbox".
+        // See http://www.w3.org/TR/wai-aria/roles#widget_roles
         FRole: string;
-        // The type applies for the <button> tag, and can be "button", "submit" or "reset"
-        // The <button> tag is used only in JQButton and JQIconButton classes
-        FType: string;
+        FType: TButtonType;
     protected
         // Enable or not the button
         FEnabled: boolean;
@@ -36,10 +42,10 @@ type
         property Caption: string read FCaption write FCaption;
         // Enable or disable the button
         property Enabled: boolean read FEnabled write FEnabled;
-        // The widget role of this objet
+        // The widget role of this object
         property ButtonRole: string read FRole write FRole;
-        // The button type of this objet
-        property ButtonType: string read FType write FType;
+        // The button type of this object
+        property ButtonType: TButtonType read FType write FType;
     end;
 
   { See http://api.jqueryui.com/theming/icons for the list of possible icons
@@ -133,13 +139,6 @@ type
         property Target: string read FTarget write FTarget;
     end;
 
-  { Button type for a toggle button }
-    TToggleButtonType = (
-        { Radio button }
-        tbRadio,
-        { CheckBox button }
-        tbCheckBox);
-
   { @abstract(Button for the TJQToggleButton class)
     Button for the TJQToggleButton class }
     TJQToggleButtonItem = class
@@ -190,16 +189,23 @@ constructor TJQButton.Create;
 begin
     inherited Create;
     FRole:='button';
-    FType:='button';
+    FType:=btButton;
     FEnabled:=True;
     FCaption:='Click me!';
     FClasse:='';
 end;
 
 function TJQButton.GetContent: string;
+var auxT: string;
 begin
+    case FType of
+        btButton: auxT:='button';
+        btSubmit: auxT:='submit';
+        btReset: auxT:='reset';
+    else auxT:='';
+    end;
     FContent.Clear;
-    FContent.Text:='<button type="'+FType+'" role="'+FRole+'" '+
+    FContent.Text:='<button type="'+auxT+'" role="'+FRole+'" '+
                    'class="ui-button '+FClasse+'" id="'+FId+'">'+
                    '<span>'+FCaption+'</span>'+
                    '</button>';
