@@ -38,6 +38,8 @@ type
     public
         constructor Create;
         destructor Destroy; override;
+        // To allow resuse of the same object
+        procedure Clear;
         // HTML Content
         property Content: string read GetContent;
         // Id of the html element
@@ -71,6 +73,17 @@ begin
     FJsBottom.Free;
     FCss.Free;
     inherited Destroy;
+end;
+
+procedure TJQBase.Clear;
+begin
+    FClasse:='';
+    FId:='';
+    FContent.Clear;
+    FJsHeader.Clear;
+    FJsTop.Clear;
+    FJsBottom.Clear;
+    FCss.Clear;
 end;
 
 end.

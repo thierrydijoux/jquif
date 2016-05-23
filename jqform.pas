@@ -45,6 +45,7 @@ type
     public
         constructor Create;
         destructor Destroy; override;
+        procedure Clear;
         // The HTML id attibute is the main reference for elements.
         // The id attribute specifies a unique id for an HTML element (the value must be
         // unique within the HTML document). The id attribute is most used to point to a
@@ -63,6 +64,7 @@ type
         procedure AddHidden(AId: string; ACaption: string; AName: string; AValue: string; AClass: string = '');
         procedure AddHtml(AText: string; APos: TPosHtml = phInline);
         procedure AddToolTip(AId: string; ATitle: string; APlaceholder: string = '');
+        procedure AddCaption(AId: string; ACaption: string; APosition: string = 'post'); // APosition should be 'pre' or 'post'
         procedure AddParameters(AId: string; AParameters: string);
         procedure AddValidation(AId: string; AMethod: TValidationMethods; ARule:string = 'true'; AMessage:string = '<default>');
         procedure SetSelected(AId: string; AIndex: integer); overload;
@@ -85,6 +87,8 @@ begin
     FBeforeContent:=TStringList.Create;
     FAfterContent:=TStringList.Create;
     FElements:=TObjectList.Create;
+    FAction:='';
+    FExtraParam:='';
     FFormMethod:=fmPost;
     FLegend:='';
     FRowsInside:=riTable;
@@ -100,6 +104,23 @@ begin
     FAfterContent.Free;
     FElements.Free;
     inherited Destroy;
+end;
+
+procedure TJQForm.Clear;
+begin
+    FBeforeContent.Clear;
+    FAfterContent.Clear;
+    FElements.Clear;
+    FAction:='';
+    FExtraParam:='';
+    FFormMethod:=fmPost;
+    FLegend:='';
+    FRowsInside:=riTable;
+    FLanguage:='en';
+    FValidationOkText:='ok';
+    FValidationIcons:=true;
+    FValidationRemote:=false;
+    inherited Clear;
 end;
 
 procedure TJQForm.AddEdit(AId: string; ACaption: string; AName: string; AValue: string; AClass: string);
@@ -264,6 +285,23 @@ begin
     if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
 end;
 
+// Adds labels before or after the field. APosition should be 'pre' or 'post'
+procedure TJQForm.AddCaption(AId: string; ACaption: string; APosition: string);
+var okFound : boolean;
+    i : integer;
+begin
+    okFound:=false;
+    for i:=0 to FElements.Count-1 do begin
+        if (FElements.Items[i] as TBaseElement).Id=AId then begin
+            if APosition='pre' then (FElements.Items[i] as TBaseElement).PreCap:=ACaption;
+            if APosition='post' then (FElements.Items[i] as TBaseElement).PostCap:=ACaption;
+            okFound := true;
+            break;
+        end;
+    end;
+    if not okFound then raise Exception.Create('Element with id = '+AId+' not found !');
+end;
+
 // The parameters uses the id (not the name) of the element.
 procedure TJQForm.AddParameters(AId: string; AParameters: string);
 var okFound : boolean;
@@ -405,7 +443,7 @@ begin
     for i:=0 to FElements.Count-1 do begin
         if not (FElements.Items[i] is TInlineHTML) then begin
             if inTable then FContent.Add('<tr>')
-            else if inParag then FContent.Add('<p>');
+            else if inParag then FContent.Add('<p>');  // TODO: not paragraph when TInputHidden
         end;
         // The inTable parameter is needed for the inners <td> inside a row
         FContent.Add((FElements.Items[i] as TBaseElement).GeneratedHtml[inTable]);

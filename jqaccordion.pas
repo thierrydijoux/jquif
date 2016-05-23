@@ -200,8 +200,8 @@ begin
                      else FJsBottom.Add(' active: '+IntToStr(FActivePage-1));  // active is 0 based
     if FAnimation<>'' then FJsBottom.Add(', animate: "'+FAnimation+'"');
     if FIsCollapsible then begin
-         FJsBottom.Add(', collapsible: true');  // default is false
-         if FOpenOnMouseOver then  FJsBottom.Add(', event: "mouseover"'); // default is "click"
+        FJsBottom.Add(', collapsible: true');  // default is false
+        if FOpenOnMouseOver then FJsBottom.Add(', event: "mouseover"'); // default is "click"
     end;
     FJsBottom.Add('    });');
     FJsBottom.Add('  });');

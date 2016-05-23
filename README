@@ -2,7 +2,7 @@ JQUIF
 ==============
 
 Classes to generate jQuery-UI interface in Free Pascal.
-Generates automatically the HTML, JavaScript ans CSS needed.
+Generates automatically the HTML, JavaScript and CSS needed.
 
 The following elements from jQuery-UI ( https://jqueryui.com ) are working:
   - Accordion,

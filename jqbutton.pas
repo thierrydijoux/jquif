@@ -108,7 +108,6 @@ type
     protected
         function GetContent: string; override;
         function GetJavaScript(location: ExtraJSloc): string; override;
-        function IconAsString(AIcon: iconUI): string;
     public
         constructor Create; overload;
         property IconRight: iconUI read FIconRight write FIconRight;
@@ -177,6 +176,8 @@ type
         property Item[AItemIndex: integer]: TJQToggleButtonItem read GetItem;
         property Count: integer read GetCount;
     end;
+
+    function IconAsString(AIcon: iconUI): string;
 
 implementation
 
@@ -283,7 +284,7 @@ begin
     Result:=FJsHeader.Text;
 end;
 
-function TJQIconButton.IconAsString(AIcon: iconUI): string;
+function IconAsString(AIcon: iconUI): string;
 var auxS : string;
     i : integer;
 begin

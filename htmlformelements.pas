@@ -45,6 +45,8 @@ type
         FClasse: string;
         FElementType: TElementType;
         FToolTips: string;
+        FPreCap: string;
+        FPostCap: string;
         FExtraParam: string;
         function GetHtml(AInTable: boolean): string; virtual; abstract;
     public
@@ -53,6 +55,8 @@ type
         property Classe: string read FClasse write FClasse;
         property ElementType: TElementType read FElementType;
         property ToolTips: string read FToolTips write FToolTips;
+        property PreCap: string read FPreCap write FPreCap;
+        property PostCap: string read FPostCap write FPostCap;
         property ExtraParam: string read FExtraParam write FExtraParam;
         property GeneratedHtml[AInTable: boolean]: string read GetHtml;
     end;
@@ -211,10 +215,10 @@ begin
         html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     end;
     html:=html+ETD;
-    html:=html+STD+
+    html:=html+STD+FPreCap+
           '<input type="'+Atype+'" name="'+FName+'" id="'+FId+'" '+
           AValue + AClass + FValidationH+' ' + FToolTips+' '+ FExtraParam+ '>'+
-          ETD;
+          FPostCap+ETD;
     if AInTable then begin
         // If the "label for" is present (with proper id and class=error)
         // it is automatically used by the Validation Plugin.
@@ -312,7 +316,7 @@ begin
     html:='';
     AValue:='';
     AClass:='';
-    if FValue<>'' then AValue:='value="'+FValue+'" ';
+    if FValue<>'' then AValue:=FValue;
     if FClasse<>'' then AClass:='class="'+FClasse+'" ';
     tableMarks(AInTable);
     html:=STD;
@@ -320,10 +324,10 @@ begin
         html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     end;
     html:=html+ETD;
-    html:=html+STD+
+    html:=html+STD+FPreCap+
           '<textarea name="'+FName+'" id="'+FId+'" '+
-          AValue + AClass + FValidationH+' ' + FToolTips+' ' + FExtraParam+'>'+
-          '</textarea>'+ETD;
+          AClass + FValidationH+' ' + FToolTips+' ' + FExtraParam+'>'+
+          AValue+'</textarea>'+FPostCap+ETD;
     if AInTable then begin
         // If the "label for" is present (with proper id and class=error)
         // it is automatically used by the Validation Plugin.
@@ -379,7 +383,7 @@ begin
     if FCaption<>'' then begin
         html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
     end;
-    html:=html+ETD;
+    html:=html+ETD+FPreCap;
     html:=html+STD+'<select name="'+FName+'" id="' + FId +'" '+ AClass +
                    FValidationH+' ' + FToolTips+' ' + FExtraParam + '>';
     for i:=0 to Length(FItemsList)-1 do begin
@@ -391,7 +395,7 @@ begin
         OneItem:=OneItem + '>' + FItemsList[i].Caption + '</option>';
         html:=html+OneItem;
     end;
-    html:=html+'</select>'+ETD;
+    html:=html+'</select>'+FPostCap+ETD;
     if AInTable then begin
         // If the "label for" is present (with proper id and class=error)
         // it is automatically used by the Validation Plugin.

@@ -7,6 +7,7 @@ unit JQTable;
    see http://www.datatables.net/, doing jQuery-UI style integration too.
 
    TODO: Add ajax capability to populate data (only json) with DataTables
+         (with ajax in large datasets, only the shown page is sent by server)
 }
 
 {$mode objfpc}{$H+}
@@ -44,7 +45,8 @@ type
         FWidth: array of integer;    //< widths of columns
         FTitle: array of string;     //< titles of columns
         FFooter: array of string;    //< footers of columns
-        FAlignment: array of string; //< alignment of columns
+        // Alignment of content inside columns: left, right, center, justify, char
+        FAlignment: array of string;
         FVisible: array of boolean;  //< visibility of columns
         // Column type: 0=normal, 1=input, 2=hiperlink, 3=button, 4=checkbox 5=with color
         FColumnType: array of integer;
@@ -86,7 +88,7 @@ type
         property NumRecords: integer read FNumRecords write FNumRecords;
         property Width[col: integer]: integer write SetWidth;
         property TotalWidth: integer read GetTotalWidth;
-        property Caption: string write FCaption;
+        property Caption: string read FCaption write FCaption;
         property Title[col: integer]: string write SetTitle;
         property Footer[col: integer]: string write SetFooter;
         property Alignment[col: integer]: string write SetAlignment;
@@ -175,8 +177,9 @@ end;
 
 procedure TJQTable.Clear;
 begin
-    FNumCols:=0;
+    SetNumCols(0);
     FNumRows:=0;
+    FNumRecords:=0;
     FCaption:='';
     FCell.Clear;
 end;
@@ -228,6 +231,12 @@ begin
     FFooter[col-1]:=value;
 end;
 
+// Sets the horizontal alignment of the content in a cell
+//   <th align="left|right|center|justify|char">
+//   <td align="left|right|center|justify|char">
+// Warning:
+//   The align attribute of <td> is not longer supported in HTML5.
+//   We should use CSS instead, for example:  <td style="text-align:right">
 procedure TJQTable.SetAlignment(col: integer; value: string);
 begin
     FAlignment[col-1]:=value;
@@ -243,7 +252,7 @@ begin
     FVisible[col-1]:=value;
 end;
 
-// Ajusta el tipo de columna de la tabla, y puede ser uno de los siguientes:
+// Sets the column type in table, could be one of the following:
 //    0 = normal     (default with optional color)
 //    1 = input box
 //    2 = hiperlink  (cell at right with the link)
