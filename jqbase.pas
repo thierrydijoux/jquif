@@ -1,84 +1,89 @@
-{
-@abstract(Base class for all jquery ui objects)
-@author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
-base class for JQuery ui object
-}
 unit JQBase;
+{< @abstract(Base class for all jQuery-UI objects)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+   Base class for jQuery-UI object
+}
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils;
+    Classes, SysUtils;
 
-Type
+type
+    ExtraJSloc = (locNone, locHeader, locBodyTop, locBodyBottom);
 
-  { base class for JQuery ui object }
-  TJQBase = class
-  protected
-    // class of the html element
-    FClasse: string;
-    // id of the html element
-    FId: string;
-    // Generated javascript
-    FJs: TStrings;
-    // HTML content
-    FContent: TStrings;
-    // Css content
-    FCss: TStrings;
-    // Return the generated html
-    function GetContent: string; virtual;
-    // Return the generated javascript
-    function GetJs: string; virtual;
-    // Return the generated css
-    function GetCss: string; virtual;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    // HTML Content
-    property Content: string read GetContent;
-    // Id of the html element
-    property Id: string read FId write FId;
-    // class of the html element
-    property Classe: string Read FClasse write FClasse;
-    // Generated Javascript
-    property JavaScript: String read GetJs;
-    // Generated css
-    property Css: String read GetCss;
-  end;
+    { Base class for JQUERY-UI object }
+    TJQBase = class
+    protected
+        // class of the html element
+        FClasse: string;
+        // id of the html element
+        FId: string;
+        // HTML content
+        FContent: TStrings;
+        // Generated javascript
+        FJsHeader: TStrings;  //< To be put inside <head></head>
+        FJsTop: TStrings;     //< To be put at the begining of <body></body>
+        FJsBottom: TStrings;  //< To be put at the end of <body></body>
+        // Css content
+        FCss: TStrings;
+        // Return the generated html
+        function GetContent: string; virtual; abstract;
+        // Return the generated javascript
+        function GetJavaScript(location: ExtraJSloc): string; virtual; abstract;
+        // Return the generated css
+        function GetCss: string; virtual; abstract;
+    public
+        constructor Create;
+        destructor Destroy; override;
+        // To allow resuse of the same object
+        procedure Clear;
+        // HTML Content
+        property Content: string read GetContent;
+        // Id of the html element
+        property Id: string read FId write FId;
+        // class of the html element
+        property Classe: string read FClasse write FClasse;
+        // Generated Javascript
+        property JavaScript[location: ExtraJSloc]: string read GetJavaScript;
+        // Generated css
+        property Css: string read GetCss;
+    end;
 
 implementation
 
-function TJQBase.GetCss: string;
-begin
-  // introducing virtual method
-  FCss.clear;
-end;
-
-function TJQBase.GetContent: string;
-begin
-  // introducing virtual method
-end;
-
-function TJQBase.GetJs: string;
-begin
-  // introducing virtual method
-end;
-
 constructor TJQBase.Create;
 begin
-  FContent:= TStringList.Create;
-  FJs:= TStringList.Create;
-  FCss:= TStringList.Create;
+    FClasse:='';
+    FId:='';
+    FContent:=TStringList.Create;
+    FJsHeader:=TStringList.Create;
+    FJsTop:=TStringList.Create;
+    FJsBottom:=TStringList.Create;
+    FCss:=TStringList.Create;
 end;
 
 destructor TJQBase.Destroy;
 begin
-  FContent.Free;
-  FJs.Free;
-  FCss.Free;
-  inherited destroy;
+    FContent.Free;
+    FJsHeader.Free;
+    FJsTop.Free;
+    FJsBottom.Free;
+    FCss.Free;
+    inherited Destroy;
+end;
+
+procedure TJQBase.Clear;
+begin
+    FClasse:='';
+    FId:='';
+    FContent.Clear;
+    FJsHeader.Clear;
+    FJsTop.Clear;
+    FJsBottom.Clear;
+    FCss.Clear;
 end;
 
 end.

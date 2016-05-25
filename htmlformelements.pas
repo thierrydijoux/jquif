@@ -1,571 +1,492 @@
-// TODO Add validator for input as number, date
-
 unit HtmlFormElements;
+{< @abstract(Elements that goes inside a form)
+   @author(Thierry DIJOUX <tjr.dijoux@gmail.com>)
+}
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils;
+    Classes, SysUtils;
 
-Type
+type
+    // These names should be the HTML5 types for input elements.
+    // See http://www.w3.org/TR/html-markup/input for list of valid types.
+    // Almost all have the <input> tag, but etTextArea and etSelect have specific HTML markup.
+    TElementType = (etNone,
+                    etText, etPassword, etCheckbox, etRadio, etButton,
+                    etSubmit, etReset, etFile, etHidden, etImage,
+                    etDateTime, etDateTimeLocal, etDate, etMonth,
+                    etTime, etWeek, etNumber, etRange, etEmail, etURL,
+                    etSearch, etTel, etColor,
+                    etTextArea, etSelect );
 
-  TElementType = (etText, etNumber, etDate, etPassword, etButton, etSubmit, etTextArea, etFile, etHidden, etCheckbox, etRadio, etSelect);
+    // Rules and messages from jQuery Validation Plugin as of version 1.13.1
+    // See http://jqueryvalidation.org/documentation for the list of
+    // current built-in validation methods.
+    // vmRemote id for an Ajax server request (XMLHttpRequest) to validate the
+    // field. See http://jqueryvalidation.org/remote-method
+    // Note that this remote Ajax request could be made manually inside a vmCustom method.
+    // vmCustom is for a custom validation method in JavaScript code, see also
+    // the additional-methods.js found in jQuery Validation Plugin distribution.
+    TValidationMethods = (vmRequired, vmMinlength, vmMaxlength, vmRangelength,
+        vmMin, vmMax, vmRange, vmEmail, vmUrl, vmDate, vmDateISO,
+        vmNumber, vmDigits, vmCreditcard, vmEqualTo,
+        vmRemote, vmCustom );
 
-  TBaseElement = class(TObject)
-  protected
-    FId: string;
-    FName: string;
-    FClass: string;
-    FElementType: TElementType;
-    FExtraParam: string;
-    function GetHtml(AInTable: boolean): string; virtual; abstract;
-  public
-    property Id: string read FId write FId;
-    property Name: string read FName write FName;
-    property Classe: string read FClass write FClass;
-    property ElementType: TElementType read FElementType;
-    property ExtraParam: string read FExtraParam write FExtraParam;
-    property GeneratedHtml[AInTable: boolean]: string read GetHtml;
-  end;
+    // Abstract class not intended to be instantiated.
+    TBaseElement = class(TObject)
+        STD, ETD: string[5];
+        procedure tableMarks(AInTable: boolean);
+    protected
+        FId: string;
+        FName: string;
+        FClasse: string;
+        FElementType: TElementType;
+        FToolTips: string;
+        FPreCap: string;
+        FPostCap: string;
+        FExtraParam: string;
+        function GetHtml(AInTable: boolean): string; virtual; abstract;
+    public
+        property Id: string read FId write FId;
+        property Name: string read FName write FName;
+        property Classe: string read FClasse write FClasse;
+        property ElementType: TElementType read FElementType;
+        property ToolTips: string read FToolTips write FToolTips;
+        property PreCap: string read FPreCap write FPreCap;
+        property PostCap: string read FPostCap write FPostCap;
+        property ExtraParam: string read FExtraParam write FExtraParam;
+        property GeneratedHtml[AInTable: boolean]: string read GetHtml;
+    end;
 
-  TBaseInput = class(TBaseElement)
-  protected
-    FLabel: string;
-    FValue: string;
-    FRequired: boolean;
-    FErrorMessage: string;
-  public
-    property Caption: string read FLabel write FLabel;
-    property Value: string read FValue write FValue;
-    property Required: boolean read FRequired write FRequired;
-    property ErrorMessage: string read FErrorMessage write FErrorMessage;
-  end;
+    // This element is used to place arbitrary HTML code between other input
+    // elements in a form. This code should provide the proper tags if the
+    // form has its rows in a table
+    TInlineHTML = class(TBaseElement)
+    protected
+        FContent: string;
+    protected
+        function GetHtml(AInTable: boolean): string; override;
+    public
+        property Content: string read FContent write FContent;
+    end;
 
-  TInput = class(TBaseInput)
-  Protected
-    FSize: integer;
-  public
-    property Size: integer read FSize write FSize;
-  end;
+    // Common ancestor class for all types of input elements in a form.
+    // Is an abstract class not intended to be instantiated.
+    // Introduces element validation via jQuery Validation Plugin.
+    TBaseInput = class(TBaseElement)
+    protected
+        FCaption: string;
+        FValue: string;
+        FValidationH: string; //< Inserted as HTML5 input parameters
+        FValidationR: string; //< Inserted as validation rules
+        FValidationM: string; //< Inserted as validation messages
+        FValidationC: string; //< For custom methods
+        function GetHtml(AInTable: boolean): string; override;
+    public
+        constructor Create;
+        property Caption: string read FCaption write FCaption;
+        property Value: string read FValue write FValue;
+        property GeneratedRules: string read FValidationR;
+        property GeneratedMessages: string read FValidationM;
+        property GeneratedCustom: string read FValidationC write FValidationC;
+        function VMethodAsString(AMethod:TValidationMethods): string;
+        procedure AddValidation(AMethod:TValidationMethods; ARule:string; AMessage:string);
+    end;
 
-  TSelect = class(TBaseInput)
-  protected
-    FItemsList: TStringList;
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-    constructor Create(AItemList: TStringList); overload;
-    destructor Destroy; override;
-    function AddItem(AValue: string; ALabel: string): integer;
-  end;
+    TInputText = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TFile = class(TBaseInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TInputPassword = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TInputText = class(TInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-    constructor CreateAsNumber; overload;
-    constructor CreateAsDate; overload;
-  end;
+    TTextArea = class(TBaseInput)
+    protected
+        function GetHtml(AInTable: boolean): string; override;
+    public
+        constructor Create;
+    end;
 
-  TInputNumber = class(TBaseInput)
-  Protected
-    FSize: integer;
-  public
-    property Size: integer read FSize write FSize;
-  end;
+    TSelectItem = record
+        Caption: string;
+        Value: string;
+        selected: boolean;
+        disabled: boolean;
+    end;
 
-  TTextArea = class(TBaseInput)
-  protected
-    FRows: integer;
-    FCols: integer;
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-    property Rows: integer read FRows write FRows;
-    property Cols: integer read FCols write FCols;
-  end;
+    TSelect = class(TBaseInput)
+    protected
+        FItemsList: array of TSelectItem;  // zero based
+        function GetHtml(AInTable: boolean): string; override;
+    public
+        constructor Create;
+        constructor Create(AItemList: TStringList); overload;
+        destructor Destroy; override;
+        function AddItem(ACaption: string; AValue: string): integer;
+        function AddItem(ACaption: string; AValue: string;
+            ASelected, ADisabled: boolean): integer;
+        procedure SelectedItem(AIndex: integer); overload;
+        procedure SelectedItem(AValue: string); overload;
+    end;
 
-  TInputRadio = class(TBaseInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TInputRadio = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TInputCheckBox = class(TBaseInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TInputCheckBox = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TInputPassword = class(TInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TFile = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TInputSubmit = class(TBaseInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TInputSubmit = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
-  TInputReset = class(TBaseInput)
-  protected
-    function GetHtml(AInTable: boolean): string; override;
-  public
-    constructor Create;
-  end;
+    TInputReset = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
+    TInputHidden = class(TBaseInput)
+    public
+        constructor Create;
+    end;
 
 implementation
 
+uses
+    TypInfo;
 
-{ TSelect }
-//  <select id="jungle" name="jungle" title="Please select something!" validate="required:true">
+{ TBaseElement --------------------------------------------------------------- }
 
-
-
-function TSelect.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired: string;
-  STD, ETD: string;
-  i: integer;
+procedure TBaseElement.tableMarks(AInTable: boolean);
 begin
-  Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '"';
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-{
-		<select id="jungle" name="jungle" title="Please select something!" validate="required:true">
-			<option value=""></option>
-			<option value="1">Buga</option>
-			<option value="2">Baga</option>
-			<option value="3">Oi</option>
-		</select>
-}
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<select id="' + FId + '" name="' + FName + '" class="' + DataRequired + '"' + FExtraParam + '>');
-  for i:= 0 to FItemsList.Count -1 do
-    Html.Add('<option value="' + FItemsList.Names[i] + '">' + FItemsList.Values[FItemsList.Names[i]] + '</option>');
-
-  Html.Add('</select>' + ETD);
-
-  result:= Html.Text;
-
-  Html.Free;
+    if AInTable then begin
+        STD:= '<td>';
+        ETD:= '</td>';
+    end else begin
+        STD:= '';
+        ETD:= '';
+    end;
 end;
 
-function TSelect.AddItem(AValue: string; ALabel: string): integer;
+{ TInlineHTML ------------------------------------------------------------------ }
+
+// If AInTable the Content should provide by itself the <tr></tr> and inners <td></td> if needed
+function TInlineHTML.GetHtml(AInTable: boolean): string;
 begin
-  result:= FItemsList.Add(AValue + '=' + ALabel);
+    tableMarks(AInTable);
+    Result:=FContent;
+end;
+
+{ TBaseInput ----------------------------------------------------------------- }
+
+constructor TBaseInput.Create;
+begin
+    FElementType:= etNone;
+end;
+
+function TBaseInput.GetHtml(AInTable: boolean): string;
+var html, AType, AValue, AClass: string;
+begin
+    html:='';
+    AValue:='';
+    AClass:='';
+    AType:=GetEnumName(TypeInfo(TElementType),ord(FElementType));
+    AType:=lowercase(copy(AType,3,100));
+    if FValue<>'' then AValue:='value="'+FValue+'" ';
+    if FClasse<>'' then AClass:='class="'+FClasse+'" ';
+    tableMarks(AInTable);
+    html:=STD;
+    if FCaption<>'' then begin
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
+    end;
+    html:=html+ETD;
+    html:=html+STD+FPreCap+
+          '<input type="'+Atype+'" name="'+FName+'" id="'+FId+'" '+
+          AValue + AClass + FValidationH+' ' + FToolTips+' '+ FExtraParam+ '>'+
+          FPostCap+ETD;
+    if AInTable then begin
+        // If the "label for" is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
+        html:=html+STD+
+              '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
+              ETD;
+    end else begin
+        // When not in a table the "label for" is automatically generated
+        // by the Validation Plugin with the proper id and class=error
+    end;
+    Result:=Html;
+end;
+
+function TBaseInput.VMethodAsString(AMethod:TValidationMethods): string;
+var auxS : string;
+begin
+    auxS:=GetEnumName(TypeInfo(TValidationMethods),ord(AMethod));
+    auxS:=lowerCase(copy(auxS,3,1))+copy(auxS,4,100);
+    Result:=auxS;
+end;
+
+// The following are inserted as HTML5 input parameters: required, minlength, maxlength, min, max
+// The others will be put inside validate() rules as json data. Special treatment
+// for custom rules and for equalTo and for fields requiring another field.
+// All messages are going inside validate() as json data.
+procedure TBaseInput.AddValidation(AMethod:TValidationMethods; ARule:string; AMessage:string);
+var auxM : string;
+begin
+    auxM:=VMethodAsString(AMethod);
+    case AMethod of
+        vmRequired: begin
+            if ARule='true' then begin
+                FValidationH:=FValidationH+' '+auxM;
+            end else if ARule<>'false' then begin
+                // This is used for one field requiring another field (by Id)
+                if FValidationR<>'' then FValidationR:=FValidationR+',';
+                FValidationR:=FValidationR+' '+FName+': {'+auxM+': "#'+ARule+'"}';
+            end;
+          end;
+        vmMinlength, vmMaxlength, vmMin, vmMax: begin
+            FValidationH:=FValidationH+' '+auxM+'="'+ARule+'"';
+          end;
+        vmEqualTo: begin
+            // EqualTo requires the id of the field being referenced
+            if FValidationR<>'' then FValidationR:=FValidationR+',';
+            FValidationR:=FValidationR+' '+FName+': {'+auxM+': "#'+ARule+'"}';
+          end;
+        vmNumber,vmDate,vmDateISO,vmEmail,vmUrl : begin
+            if ARule='true' then begin
+                if FValidationR<>'' then FValidationR:=FValidationR+',';
+                FValidationR:=FValidationR+' '+FName+': {'+auxM+': '+ARule+'}';
+            end;
+          end;
+        vmCustom : begin
+            // Here the rule is the name of the custom method
+            if FValidationR<>'' then FValidationR:=FValidationR+',';
+            FValidationR:=FValidationR+' '+FName+': {'+ARule+': true}';
+          end;
+        else begin
+            // vmRemote is included in this default case
+            if FValidationR<>'' then FValidationR:=FValidationR+',';
+            FValidationR:=FValidationR+' '+FName+': {'+auxM+': "'+ARule+'"}';
+          end;
+    end;
+    if AMessage<>'<default>' then begin
+        if FValidationM<>'' then FValidationM:=FValidationM+',';
+        FValidationM:=FValidationM+' '+FName+': {'+auxM+': "'+AMessage+'"}';
+    end;
+end;
+
+{ TInputText ----------------------------------------------------------------- }
+
+constructor TInputText.Create;
+begin
+    FElementType := etText;
+end;
+
+{ TInputPassword ------------------------------------------------------------- }
+
+constructor TInputPassword.Create;
+begin
+    FElementType := etPassword;
+end;
+
+{ TTextArea ------------------------------------------------------------------ }
+
+constructor TTextArea.Create;
+begin
+    FElementType := etTextArea;
+end;
+
+function TTextArea.GetHtml(AInTable: boolean): string;
+var html, AValue, AClass: string;
+begin
+    html:='';
+    AValue:='';
+    AClass:='';
+    if FValue<>'' then AValue:=FValue;
+    if FClasse<>'' then AClass:='class="'+FClasse+'" ';
+    tableMarks(AInTable);
+    html:=STD;
+    if FCaption<>'' then begin
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
+    end;
+    html:=html+ETD;
+    html:=html+STD+FPreCap+
+          '<textarea name="'+FName+'" id="'+FId+'" '+
+          AClass + FValidationH+' ' + FToolTips+' ' + FExtraParam+'>'+
+          AValue+'</textarea>'+FPostCap+ETD;
+    if AInTable then begin
+        // If the "label for" is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
+        html:=html+STD+
+              '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
+              ETD;
+    end else begin
+        // When not in a table the "label for" is automatically generated
+        // by the Validation Plugin with the proper id and class=error
+    end;
+    Result:=html;
+end;
+
+{ TSelect -------------------------------------------------------------------- }
+
+constructor TSelect.Create;
+begin
+    FElementType := etSelect;
+    SetLength(FItemsList, 0);
+end;
+
+constructor TSelect.Create(AItemList: TStringList);
+var i: integer;
+begin
+    inherited Create;
+    try
+        SetLength(FItemsList, 0);
+        for i := 0 to AItemList.Count - 1 do begin
+            // The pairs are name=value (name is the caption shown)
+            AddItem(AItemList.Names[i], AItemList.Values[AItemList.Names[i]]);
+        end;
+    except
+        on e: Exception do
+            raise Exception.Create('TSelect Create: ' + e.Message);
+    end;
 end;
 
 destructor TSelect.Destroy;
 begin
-  FItemsList.Free;
-  inherited destroy;
+    SetLength(FItemsList, 0);
+    inherited Destroy;
 end;
 
-constructor TSelect.Create(AItemList: TStringList);
-Var
-  i: integer;
+function TSelect.GetHtml(AInTable: boolean): string;
+var html, OneItem, AClass: string;
+    i: integer;
 begin
-  inherited Create;
-  try
-    if not Assigned(FItemsList) then FItemsList:= TStringList.Create;
-    for i:= 0 to AItemList.Count -1 do
-      AddItem(AItemList.Names[i], AItemList.Values[AItemList.Names[i]]);
-  except on e:exception do
-    Raise Exception.Create('TSelect.Create(AItemList: TStrings): ' + e.Message);
-  end;
+    html:='';
+    AClass:='';
+    if FClasse<>'' then AClass:='class="'+FClasse+'" ';
+    tableMarks(AInTable);
+    html:=html+STD;
+    if FCaption<>'' then begin
+        html:=html+'<label for="'+FId+'">'+FCaption+'</label>';
+    end;
+    html:=html+ETD+FPreCap;
+    html:=html+STD+'<select name="'+FName+'" id="' + FId +'" '+ AClass +
+                   FValidationH+' ' + FToolTips+' ' + FExtraParam + '>';
+    for i:=0 to Length(FItemsList)-1 do begin
+        OneItem:= '<option value="' + FItemsList[i].Value + '" ';
+        if FItemsList[i].selected then
+            OneItem:= OneItem + 'selected ';
+        if FItemsList[i].disabled then
+            OneItem:= OneItem + 'disabled ';
+        OneItem:=OneItem + '>' + FItemsList[i].Caption + '</option>';
+        html:=html+OneItem;
+    end;
+    html:=html+'</select>'+FPostCap+ETD;
+    if AInTable then begin
+        // If the "label for" is present (with proper id and class=error)
+        // it is automatically used by the Validation Plugin.
+        html:=html+STD+
+              '<label for="'+FId+'" id="'+FId+'-error" class="error"></label>'+
+              ETD;
+    end else begin
+        // When not in a table the "label for" is automatically generated
+        // by the Validation Plugin with the proper id and class=error
+    end;
+    Result:=html;
 end;
 
-constructor TSelect.Create;
+function TSelect.AddItem(ACaption: string; AValue: string): integer;
 begin
-  FElementType:= etSelect;
-  FItemsList:= TStringList.Create;
+    Result:=AddItem(ACaption, AValue, False, False);
 end;
 
-{ TTextArea }
-
-function TTextArea.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  STD, ETD: string;
+function TSelect.AddItem(ACaption: string; AValue: string;
+    ASelected, ADisabled: boolean): integer;
+var Count: integer;
 begin
-  Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  DataSize:= '';
-  if FRows > 0 then
-    DataSize:= 'rows="' + intToStr(FRows) + '"';
-  if FCols > 0 then
-    DataSize:= 'cols="' + intToStr(FCols) + '"';
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '" ';
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  //<textarea id="ccomment" name="comment" class="required"></textarea>
-  Html.Add(STD + '<textarea id="' + FId + '" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' ></textarea>' + ETD);
-  result:= Html.Text;
-  Html.Free;
+    Count:=Length(FItemsList);
+    Inc(Count);
+    SetLength(FItemsList, Count);
+    FItemsList[Count-1].Caption:=ACaption;
+    FItemsList[Count-1].Value:=AValue;
+    FItemsList[Count-1].selected:=ASelected;
+    FItemsList[Count-1].disabled:=ADisabled;
+    Result:=Count-1;
 end;
 
-constructor TTextArea.Create;
+// Marks with "selected" the element at index AIndex (base 1)
+procedure TSelect.SelectedItem(AIndex: integer);
 begin
-  FElementType:= etTextArea;
+    FItemsList[AIndex-1].selected:=true;
 end;
 
-{ TInputCheckBox }
-
-function TInputCheckBox.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired: string;
-  STD, ETD: string;
+// Marks with "selected" the first element with value AValue
+// If no such element is found, nothing is done
+procedure TSelect.SelectedItem(AValue: string);
+var i: integer;
 begin
-  Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '" ';
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<input id="' + FId + '" type="checkbox" name="' + FName + '" class="' + DataRequired + '"' + Data + FExtraParam + ' />' + ETD);
-
-  result:= Html.Text;
-  Html.Free;
+    for i:=0 to Length(FItemsList)-1 do begin
+        if FItemsList[i].Value=AValue then begin
+            FItemsList[i].selected:=true;
+            break;
+        end;
+    end;
 end;
 
-constructor TInputCheckBox.Create;
-begin
-  FElementType:= etCheckBox;
-end;
-
-{ TInputRadio }
-
-function TInputRadio.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired: string;
-  STD, ETD: string;
-begin
-  Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '" ';
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<input id="' + FId + '" type="radio" name="' + FName + '" class="' + DataRequired + '"' + Data + FExtraParam + ' />' + ETD);
-  result:= Html.Text;
-  Html.Free;
-end;
+{ TInputRadio ---------------------------------------------------------------- }
 
 constructor TInputRadio.Create;
 begin
-  FElementType:= etRadio;
+    FElementType := etRadio;
 end;
 
-{ TInputReset }
+{ TInputCheckBox ------------------------------------------------------------- }
 
-function TInputReset.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  STD, ETD: string;
+constructor TInputCheckBox.Create;
 begin
-  Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-  Html.Add(STD + '<input class="' + FClass + '" type="reset" value="' + FValue + '"' + FExtraParam + ' />' + ETD);
-  result:= Html.Text;
-  Html.Free;
+    FElementType := etCheckBox;
 end;
 
-constructor TInputReset.Create;
-begin
-  FElementType:= etSubmit;
-end;
-
-{ TInputSubmit }
-
-function TInputSubmit.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  STD, ETD: string;
-begin
-  Html:= TStringList.Create;
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-  Html.Add(STD + '<input class="' + FClass + '" type="submit" value="' + FValue + '" Name="' + FName + '" ' + FExtraParam + ' />' + ETD);
-  result:= Html.Text;
-  Html.Free;
-end;
-
-constructor TInputSubmit.Create;
-begin
-  FElementType:= etSubmit;
-end;
-
-
-{ TInputPassword }
-
-function TInputPassword.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  STD, ETD: string;
-begin
-  Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '" ';
-
-  DataSize:= '';
-  if FSize > 0 then
-    DataSize:= 'size="' + inttostr(FSize) + '" ';
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<input id="' + FId + '" type="password" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' />' + ETD);
-
-  result:= Html.Text;
-
-  Html.Free;
-end;
-
-constructor TInputPassword.Create;
-begin
-  FElementType:= etPassword;
-end;
-
-{ TFile }
-
-function TFile.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  STD, ETD: string;
-begin
-  Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // is it required ?
-  Case FRequired of
-    true: DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    false: DataRequired:= 'notrequired';
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<input id="' + FId + '" type="file" name="' + FName + '" class="' + DataRequired + '"' + FExtraParam + ' />' + ETD);
-  Html.Add('<td class="status"></td>');
-  result:= Html.Text;
-
-  Html.Free;
-
-end;
+{ TFile ---------------------------------------------------------------------- }
 
 constructor TFile.Create;
 begin
-  FElementType:= etFile;
+    FElementType := etFile;
 end;
 
-{ TInputNumber }
+{ TInputSubmit --------------------------------------------------------------- }
 
-
-{ TInputText }
-
-function TInputText.GetHtml(AInTable: boolean): string;
-Var
-  Html: TStrings;
-  Data, DataRequired, DataSize: string;
-  NumberValidation, NumberValidationError: string;
-  DateValidation, DateValidationError: string;
-  STD, ETD: string;
+constructor TInputSubmit.Create;
 begin
-  Html:= TStringList.Create;
-
-  if AInTable then
-  begin
-    STD:='<td>';
-    ETD:='</td>';
-  end;
-
-  // Having some value ?
-  Data:= '';
-  if FValue <> '' then
-    Data:= 'value="' + FValue + '"';
-
-  DataSize:= '';
-  if FSize > 0 then
-    DataSize:= 'size="' + inttostr(FSize) + '" ';
-
-  Case FElementType of
-    etNumber:
-    begin
-      NumberValidation:= 'number:true';
-      NumberValidationError:= 'number:'' Veuillez saisir des chiffres''';
-    end;
-    etDate:
-    begin
-      DateValidation:= 'date:true';
-      DateValidationError:= 'date:'' Veuillez entrer une date valide (JJ/MM/AAAA)''';
-    end;
-  end;
-
-  // is it required ?
-  Case FRequired of
-    true:
-    begin
-      if NumberValidation <> '' then
-        DataRequired:= '{required:true,' + NumberValidation + ', messages:{required:''' + FErrorMessage + ''',' + NumberValidationError + '}}'
-      else
-        DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-      if DateValidation <> '' then
-        DataRequired:= '{required:true,' + DateValidation + ', messages:{required:''' + FErrorMessage + ''',' + DateValidationError + '}}'
-      else
-        DataRequired:= '{required:true, messages:{required:''' + FErrorMessage + '''}}';
-    end;
-    false:
-    begin
-      DataRequired:= 'notrequired';
-      if NumberValidation <> '' then
-        DataRequired:= '{' + NumberValidation + ', messages:{' + NumberValidationError + '}}';
-      if DateValidation <> '' then
-        DataRequired:= '{' + DateValidation + ', messages:{' + DateValidationError + '}}';
-    end;
-  end;
-
-  if FLabel <> '' then
-    Html.Add(STD + '<label for="' + FId + '">' + FLabel + '</label>' + ETD);
-
-  Html.Add(STD + '<input id="' + FId + '" type="text" name="' + FName + '" class="' + DataRequired + '"' + Data + DataSize + FExtraParam + ' />' + ETD);
-  Html.Add('<td class="status"></td>');
-  Html.Insert(0, '<div class="ui-widget">');
-  Html.Add('</div>');
-  result:= Html.Text;
-
-  Html.Free;
+    FElementType := etSubmit;
 end;
 
-constructor TInputText.Create;
+{ TInputReset ---------------------------------------------------------------- }
+
+constructor TInputReset.Create;
 begin
-  FElementType:= etText;
+    FElementType := etReset;
 end;
 
-constructor TInputText.CreateAsNumber;
-begin
-  FElementType:= etNumber;
-end;
+{ TInputHidden --------------------------------------------------------------- }
 
-constructor TInputText.CreateAsDate;
+constructor TInputHidden.Create;
 begin
-  FElementType:= etDate;
+    FElementType := etHidden;
 end;
 
 end.
-
